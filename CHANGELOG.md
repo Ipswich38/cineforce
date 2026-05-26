@@ -12,6 +12,13 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ---
 
+## [0.5.1-beta.1] — 2026-05-27
+
+### Changed
+- **Find page redesign** — search box now uses the same pill-style as the homepage (glass background, amber Find button, role suggestion dropdown). Filter dropdowns are pill-shaped with unique accent colors per filter: Role (amber), Location (blue), Experience (purple), Availability (green). Active filters shown as removable color badges above results. Crew cards redesigned with left availability border, colored avatar ring, specialization chips, and full-card tap target. Results shown in a 2-column grid on wider screens.
+
+---
+
 ## [0.5.0-beta.1] — 2026-05-26
 
 ### Added
