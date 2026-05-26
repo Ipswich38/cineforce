@@ -1,12 +1,13 @@
 {
-  "name": "setready",
-  "version": "0.1.0",
+  "name": "yournextcrew",
+  "version": "0.4.1-beta.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "release": "bash scripts/release.sh"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",
