@@ -9,12 +9,11 @@ import { ArrowLeft, Mail, Clapperboard, CheckCircle2 } from "lucide-react";
 const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
 const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
 
-const BG      = "#000000";
-const SURFACE = "#101010";
-const TEXT    = "#F7F7F2";
-const MUTED   = "#8E8E93";
-const AMBER   = "#FFCC00";
-const BORDER  = "rgba(255,255,255,0.09)";
+const BG     = "#000000";
+const TEXT   = "#F7F7F2";
+const MUTED  = "#8E8E93";
+const AMBER  = "#FFCC00";
+const BORDER = "rgba(255,255,255,0.09)";
 
 function GoogleLogo() {
   return (
@@ -65,17 +64,18 @@ function AuthPageInner() {
     setLoading(false);
   }
 
-  const inputStyle: React.CSSProperties = {
-    width: "100%", padding: "13px 16px", borderRadius: 12,
-    border: `1px solid ${BORDER}`, background: "#080808",
-    color: TEXT, fontFamily: FT, fontSize: 16, outline: "none",
-  };
-
   return (
-    <div style={{ background: BG, minHeight: "100dvh", display: "flex", flexDirection: "column" }}>
+    <div style={{ background: BG, minHeight: "100dvh", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" }}>
+
+      {/* Ambient glow */}
+      <div style={{
+        position: "fixed", top: -60, left: "50%", transform: "translateX(-50%)",
+        width: 700, height: 500, pointerEvents: "none", zIndex: 0,
+        background: "radial-gradient(ellipse 55% 40% at 50% 0%, rgba(255,179,0,0.10) 0%, transparent 68%)",
+      }} />
 
       {/* Nav */}
-      <div className="app-container topbar-inner" style={{ justifyContent: "flex-start" }}>
+      <div className="app-container topbar-inner" style={{ position: "relative", zIndex: 2 }}>
         <Link href="/"
           style={{ display: "flex", alignItems: "center", gap: 8, color: MUTED }}
           className="hover:opacity-70 transition-opacity">
@@ -85,148 +85,192 @@ function AuthPageInner() {
         </Link>
       </div>
 
-      {/* Card area */}
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", paddingBlock: "clamp(20px,4vh,52px)" }}>
-        <div style={{ width: "100%", maxWidth: 440 }}>
+      {/* Main area */}
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "clamp(16px,4vh,48px) clamp(16px,5vw,24px)", position: "relative", zIndex: 2 }}>
+        <div style={{ width: "100%", maxWidth: 420 }}>
 
           {/* Card */}
-          <div className="app-surface" style={{ background: SURFACE, border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 20px 60px rgba(0,0,0,0.6)", overflow: "hidden" }}>
-            <div style={{ height: 2, background: `linear-gradient(90deg, ${AMBER}, rgba(255,179,0,0.28), transparent)` }} />
+          <div style={{
+            background: "rgba(16,16,18,0.92)",
+            border: "1px solid rgba(255,255,255,0.09)",
+            borderRadius: 24,
+            boxShadow: "0 2px 0 rgba(255,255,255,0.04) inset, 0 24px 80px rgba(0,0,0,0.6)",
+            overflow: "hidden",
+            backdropFilter: "blur(24px)",
+            WebkitBackdropFilter: "blur(24px)",
+          }}>
+            {/* Top amber accent stripe */}
+            <div style={{ height: 2, background: `linear-gradient(90deg, ${AMBER}, rgba(255,179,0,0.3) 60%, transparent)` }} />
 
-            <div style={{ padding: "clamp(28px,7%,44px)" }}>
-
-              {/* Logo icon */}
-              <div style={{ width: 50, height: 50, borderRadius: 14, background: "rgba(255,179,0,0.1)", border: "1px solid rgba(255,179,0,0.2)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
-                <Clapperboard size={22} style={{ color: AMBER }} strokeWidth={1.8} />
-              </div>
+            <div style={{ padding: "clamp(28px,7%,40px)" }}>
 
               {sent ? (
-                /* ── Check inbox state ── */
-                <div style={{ textAlign: "center", paddingBottom: 8 }}>
-                  <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(50,215,75,0.08)", border: "1px solid rgba(50,215,75,0.2)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px" }}>
-                    <CheckCircle2 size={28} style={{ color: "#32D74B" }} />
+                /* ── Check inbox ── */
+                <div style={{ textAlign: "center", padding: "8px 0 4px" }}>
+                  <div style={{
+                    width: 68, height: 68, borderRadius: "50%", margin: "0 auto 24px",
+                    background: "rgba(50,215,75,0.08)", border: "1px solid rgba(50,215,75,0.2)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    <CheckCircle2 size={30} style={{ color: "#32D74B" }} />
                   </div>
-                  <h1 style={{ fontFamily: FD, fontWeight: 700, fontSize: 24, color: TEXT, letterSpacing: "-0.024em", marginBottom: 12 }}>
+                  <h1 style={{ fontFamily: FD, fontWeight: 700, fontSize: 26, color: TEXT, letterSpacing: "-0.028em", marginBottom: 10 }}>
                     Check your inbox
                   </h1>
-                  <p style={{ fontFamily: FT, fontSize: 15, color: MUTED, lineHeight: 1.65, marginBottom: 10 }}>
-                    We sent a magic link to
+                  <p style={{ fontFamily: FT, fontSize: 15, color: MUTED, lineHeight: 1.6, marginBottom: 8 }}>
+                    Magic link sent to
                   </p>
-                  <p style={{ fontFamily: FT, fontSize: 15, color: TEXT, fontWeight: 600, marginBottom: 28 }}>
+                  <p style={{ fontFamily: FT, fontSize: 16, color: TEXT, fontWeight: 600, marginBottom: 24 }}>
                     {email}
                   </p>
-                  <p style={{ fontFamily: FT, fontSize: 13, color: "rgba(255,255,255,0.28)", lineHeight: 1.65, marginBottom: 32 }}>
-                    Click the link in your email to sign in.
-                    <br />No password needed — ever.
+                  <p style={{ fontFamily: FT, fontSize: 13, color: "rgba(255,255,255,0.28)", lineHeight: 1.7, marginBottom: 32 }}>
+                    Tap the link in your email to sign in.
+                    <br />No password needed, ever.
                   </p>
                   <button
                     onClick={() => { setSent(false); setError(""); }}
-                    style={{ background: "none", border: "none", cursor: "pointer", fontFamily: FT, fontSize: 14, color: AMBER, fontWeight: 500 }}
-                    className="hover:opacity-70 transition-opacity">
+                    style={{
+                      background: "rgba(255,179,0,0.08)", border: "1px solid rgba(255,179,0,0.2)",
+                      borderRadius: 999, padding: "10px 22px",
+                      cursor: "pointer", fontFamily: FT, fontSize: 14, color: AMBER, fontWeight: 600,
+                    }}
+                    className="transition-all hover:opacity-80 active:scale-[0.97]">
                     Use a different email
                   </button>
                 </div>
+
               ) : (
                 <>
-                  {/* Tab switcher */}
-                  <div style={{ display: "flex", background: "#080808", borderRadius: 12, padding: 4, marginBottom: 28, gap: 4 }}>
+                  {/* Logo mark */}
+                  <div style={{
+                    width: 48, height: 48, borderRadius: 14,
+                    background: "rgba(255,179,0,0.1)", border: "1px solid rgba(255,179,0,0.2)",
+                    display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24,
+                  }}>
+                    <Clapperboard size={21} style={{ color: AMBER }} strokeWidth={1.8} />
+                  </div>
+
+                  {/* Tab switcher — pill segmented control */}
+                  <div style={{
+                    display: "flex", background: "rgba(255,255,255,0.05)",
+                    borderRadius: 999, padding: 3, marginBottom: 28, gap: 3,
+                  }}>
                     {(["signin", "join"] as const).map((t) => (
                       <button key={t} type="button"
                         onClick={() => { setTab(t); setError(""); }}
                         style={{
-                          flex: 1, height: 38, borderRadius: 9, cursor: "pointer",
+                          flex: 1, height: 40, borderRadius: 999, cursor: "pointer", border: "none",
                           background: tab === t
-                            ? t === "join" ? AMBER : SURFACE
+                            ? t === "join" ? AMBER : "rgba(255,255,255,0.1)"
                             : "transparent",
-                          border: tab === t
-                            ? t === "join" ? "none" : `1px solid ${BORDER}`
-                            : "1px solid transparent",
                           color: tab === t
                             ? t === "join" ? "#000" : TEXT
                             : MUTED,
                           fontFamily: FT, fontSize: 14, fontWeight: tab === t ? 700 : 400,
                           transition: "all 0.18s",
                         }}>
-                        {t === "signin" ? "Log in" : "Join"}
+                        {t === "signin" ? "Log in" : "Sign up"}
                       </button>
                     ))}
                   </div>
 
-                  <h1 style={{ fontFamily: FD, fontWeight: 700, fontSize: "clamp(22px,4vw,26px)", color: TEXT, letterSpacing: "-0.024em", marginBottom: 8 }}>
-                    {tab === "signin" ? "Welcome back" : "Get listed"}
+                  <h1 style={{ fontFamily: FD, fontWeight: 700, fontSize: "clamp(22px,5vw,28px)", color: TEXT, letterSpacing: "-0.028em", marginBottom: 6 }}>
+                    {tab === "signin" ? "Welcome back" : "Join the crew"}
                   </h1>
                   <p style={{ fontFamily: FT, fontSize: 15, color: MUTED, lineHeight: 1.55, marginBottom: 28 }}>
                     {tab === "signin"
-                      ? "Manage your card and requests."
-                      : "Build your crew card in minutes."}
+                      ? "Manage your card and incoming requests."
+                      : "Build your crew card. Get found. Stay booked."}
                   </p>
 
-                  {/* Google — primary CTA */}
+                  {/* Google — pill button */}
                   <button onClick={handleGoogleAuth}
+                    className="transition-all hover:opacity-92 active:scale-[0.98]"
                     style={{
-                      width: "100%", height: 52, borderRadius: 14,
-                      background: "#fff", border: "1.5px solid rgba(0,0,0,0.08)",
+                      width: "100%", height: 54, borderRadius: 999,
+                      background: "#ffffff", border: "none",
                       display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
                       fontFamily: FT, fontSize: 15, fontWeight: 600, color: "#1a1a1a",
-                      cursor: "pointer", marginBottom: 20,
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.22)",
-                      transition: "box-shadow 0.18s",
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 4px 18px rgba(0,0,0,0.32)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.22)")}>
+                      cursor: "pointer", marginBottom: 18,
+                      boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
+                    }}>
                     <GoogleLogo />
-                    {tab === "signin" ? "Continue with Google" : "Join with Google"}
+                    {tab === "signin" ? "Continue with Google" : "Sign up with Google"}
                   </button>
 
                   {/* Divider */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
-                    <div style={{ flex: 1, height: 1, background: BORDER }} />
-                    <span style={{ fontFamily: FT, fontSize: 12, color: "rgba(255,255,255,0.28)" }}>or email</span>
-                    <div style={{ flex: 1, height: 1, background: BORDER }} />
+                  <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 18 }}>
+                    <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.07)" }} />
+                    <span style={{ fontFamily: FT, fontSize: 12, color: "rgba(255,255,255,0.28)" }}>or continue with email</span>
+                    <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.07)" }} />
                   </div>
 
-                  {/* Email OTP */}
+                  {/* Error */}
                   {error && (
-                    <div style={{ padding: "10px 14px", borderRadius: 10, background: "rgba(255,69,58,0.08)", border: "1px solid rgba(255,69,58,0.2)", marginBottom: 14 }}>
+                    <div style={{
+                      padding: "10px 16px", borderRadius: 12,
+                      background: "rgba(255,69,58,0.08)", border: "1px solid rgba(255,69,58,0.2)",
+                      marginBottom: 14,
+                    }}>
                       <p style={{ fontFamily: FT, fontSize: 13, color: "#FF453A" }}>{error}</p>
                     </div>
                   )}
 
-                  <form onSubmit={handleEmailContinue} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                    <div style={{ position: "relative" }}>
-                      <Mail size={15} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: MUTED, pointerEvents: "none" }} />
+                  {/* Email form */}
+                  <form onSubmit={handleEmailContinue} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+
+                    {/* Email pill input */}
+                    <div style={{
+                      display: "flex", alignItems: "center", gap: 10,
+                      background: "#080808", borderRadius: 999,
+                      border: `1px solid ${BORDER}`,
+                      padding: "0 18px",
+                      transition: "border-color 0.18s",
+                    }}
+                      onFocusCapture={(e) => (e.currentTarget.style.borderColor = "rgba(255,179,0,0.4)")}
+                      onBlurCapture={(e) => (e.currentTarget.style.borderColor = BORDER)}>
+                      <Mail size={15} style={{ color: MUTED, flexShrink: 0 }} />
                       <input
                         type="email"
-                        placeholder="Email"
+                        placeholder="Email address"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        style={{ ...inputStyle, paddingLeft: 42 }}
-                        onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(255,179,0,0.4)")}
-                        onBlur={(e)  => (e.currentTarget.style.borderColor = BORDER)}
+                        autoComplete="email"
+                        autoCorrect="off"
+                        autoCapitalize="none"
+                        style={{
+                          flex: 1, background: "none", border: "none", outline: "none",
+                          color: TEXT, fontFamily: FT, fontSize: 16,
+                          padding: "14px 0",
+                        }}
                       />
                     </div>
+
+                    {/* Submit pill button */}
                     <button type="submit" disabled={loading}
                       className="transition-all active:scale-[0.98]"
                       style={{
-                        width: "100%", height: 52, borderRadius: 14, border: "none",
+                        width: "100%", height: 54, borderRadius: 999, border: "none",
                         background: loading ? "rgba(255,179,0,0.5)" : AMBER,
                         color: "#000", fontFamily: FT, fontSize: 15, fontWeight: 700,
                         cursor: loading ? "not-allowed" : "pointer",
+                        letterSpacing: "-0.01em",
+                        boxShadow: loading ? "none" : "0 1px 0 rgba(255,255,255,0.3) inset",
                       }}>
-                      {loading ? "Sending…" : tab === "signin" ? "Send link" : "Continue"}
+                      {loading ? "Sending link…" : tab === "signin" ? "Send magic link" : "Continue"}
                     </button>
                   </form>
 
-                  {/* Switch tab hint */}
+                  {/* Switch tab */}
                   <p style={{ fontFamily: FT, fontSize: 14, color: "rgba(255,255,255,0.35)", textAlign: "center", marginTop: 24 }}>
-                    {tab === "signin" ? "New here?" : "Already a member?"}
+                    {tab === "signin" ? "New to YourNextCrew?" : "Already a member?"}
                     {" "}
                     <button
                       onClick={() => { setTab(tab === "signin" ? "join" : "signin"); setError(""); }}
-                      style={{ color: AMBER, background: "none", border: "none", cursor: "pointer", fontFamily: FT, fontSize: 14, fontWeight: 500 }}
+                      style={{ color: AMBER, background: "none", border: "none", cursor: "pointer", fontFamily: FT, fontSize: 14, fontWeight: 600 }}
                       className="hover:opacity-70 transition-opacity">
-                      {tab === "signin" ? "Join" : "Log in"}
+                      {tab === "signin" ? "Sign up free" : "Log in"}
                     </button>
                   </p>
                 </>
@@ -236,8 +280,8 @@ function AuthPageInner() {
 
           {/* Footer note */}
           {!sent && tab === "join" && (
-            <p style={{ fontFamily: FT, fontSize: 12, color: "rgba(255,255,255,0.2)", textAlign: "center", marginTop: 20, lineHeight: 1.7 }}>
-              Your card is public. Contact stays gated.
+            <p style={{ fontFamily: FT, fontSize: 12, color: "rgba(255,255,255,0.2)", textAlign: "center", marginTop: 18, lineHeight: 1.7 }}>
+              Your card is public. Contact info stays gated behind a request.
             </p>
           )}
         </div>

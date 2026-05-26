@@ -12,6 +12,14 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ---
 
+## [0.6.0-beta.1] — 2026-05-27
+
+### Changed
+- **Auth page redesign** — all buttons are now pill/capsule shaped (borderRadius 999). Google button: white pill with shadow. Email input: pill container with icon inside. Submit button: amber pill. Tab switcher: iOS-style segmented pill control. Ambient amber glow added to background. Card corners increased to 24px. "Join" renamed to "Sign up" for clarity.
+- **Bottom nav Account tab** — detects login state. When logged out, tapping Account shows a mini sheet above the nav bar with "Sign up free" (amber pill) and "Log in" (outline pill) options. When logged in, navigates directly to Dashboard. Sheet auto-dismisses on login.
+
+---
+
 ## [0.5.1-beta.1] — 2026-05-27
 
 ### Changed
