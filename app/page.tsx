@@ -6,20 +6,20 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ROLES, AVAILABILITY, EXPERIENCE_LEVELS } from "@/lib/constants";
 import {
-  Search, MapPin, ArrowRight, ArrowDown,
+  Search, MapPin, ArrowRight,
   Clapperboard, X, RotateCcw, Users, Menu,
 } from "lucide-react";
-import { SAMPLE_PROFILES } from "@/lib/sampleProfiles";
+import { searchIndustryRoles, type IndustryRole } from "@/lib/industryRoles";
 
 const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
 const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
 
-const BG      = "#0C0C0F";
-const BG_ALT  = "#111115";
-const SURFACE = "#18181D";
-const TEXT    = "#F0EDE5";
-const MUTED   = "#78787F";
-const AMBER   = "#FFB300";
+const BG      = "#000000";
+const BG_ALT  = "#080808";
+const SURFACE = "#101010";
+const TEXT    = "#F7F7F2";
+const MUTED   = "#8E8E93";
+const AMBER   = "#FFCC00";
 const BORDER  = "rgba(255,255,255,0.07)";
 const DIVIDER = "rgba(255,255,255,0.05)";
 
@@ -65,24 +65,25 @@ function Nav() {
           backdropFilter: (scrolled || menuOpen) ? "blur(24px) saturate(160%)" : "none",
           WebkitBackdropFilter: (scrolled || menuOpen) ? "blur(24px) saturate(160%)" : "none",
           borderBottom: (scrolled || menuOpen) ? `1px solid ${BORDER}` : "1px solid transparent",
+          paddingTop: "env(safe-area-inset-top, 0px)",
         }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 clamp(16px,5vw,64px)", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+        <div className="app-container" style={{ height: 60, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
 
           {/* Logo */}
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
             <Clapperboard size={17} style={{ color: AMBER }} strokeWidth={2} />
-            <span style={{ fontFamily: FD, fontWeight: 700, fontSize: 17, color: TEXT, letterSpacing: "-0.02em" }}>SetReady</span>
+            <span style={{ fontFamily: FD, fontWeight: 700, fontSize: 17, color: TEXT, letterSpacing: "-0.02em" }}>YourNextCrew</span>
           </Link>
 
           {/* Desktop nav links */}
           <nav className="hidden md:flex items-center" style={{ gap: 28, flex: 1, justifyContent: "center" }}>
             {[
-              { href: "#browse", label: "Browse Crew" },
-              { href: "/search", label: "Search" },
+              { href: "/search", label: "Find" },
+              { href: "/about", label: "About" },
             ].map(({ href, label }) => (
-              <a key={label} href={href}
+              <Link key={label} href={href}
                 style={{ fontFamily: FT, fontSize: 14, color: MUTED }}
-                className="transition-colors hover:text-white">{label}</a>
+                className="transition-colors hover:text-white">{label}</Link>
             ))}
           </nav>
 
@@ -93,35 +94,33 @@ function Nav() {
             <Link href="/auth"
               style={{ fontFamily: FT, fontSize: 14, color: MUTED, padding: "6px 10px" }}
               className="hidden md:block transition-colors hover:text-white">
-              Sign in
+              Log in
             </Link>
 
             {/* ALWAYS VISIBLE: Join as Crew */}
             <Link href="/auth?intent=join"
+              className="nav-primary-cta transition-all hover:opacity-85 active:scale-[0.97]"
               style={{
                 fontFamily: FT, fontWeight: 700, fontSize: 14,
                 background: AMBER, color: "#000",
                 padding: "9px clamp(14px,2.5vw,22px)", borderRadius: 22,
                 letterSpacing: "-0.01em", whiteSpace: "nowrap",
                 display: "flex", alignItems: "center", gap: 5,
-              }}
-              className="transition-all hover:opacity-85 active:scale-[0.97]">
+              }}>
               {/* Shorter label on very small screens */}
-              <span className="inline sm:hidden">Join</span>
-              <span className="hidden sm:inline">Join as Crew</span>
+              <span>Join</span>
             </Link>
 
-            {/* Mobile: hamburger — md+ hidden */}
+            {/* Hamburger hidden — bottom nav handles mobile navigation */}
             <button
               onClick={() => setMenuOpen(!menuOpen)}
               aria-label={menuOpen ? "Close menu" : "Open menu"}
-              className="md:hidden"
+              className="hidden flex items-center justify-center"
               style={{
                 width: 38, height: 38, borderRadius: 10, flexShrink: 0,
                 border: `1px solid ${menuOpen ? "rgba(255,255,255,0.14)" : BORDER}`,
                 background: menuOpen ? "rgba(255,255,255,0.06)" : "transparent",
                 color: TEXT, cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center",
                 transition: "all 0.18s",
               }}>
               {menuOpen ? <X size={17} /> : <Menu size={17} />}
@@ -143,19 +142,21 @@ function Nav() {
           <div
             className="md:hidden menu-slide"
             style={{
-              position: "fixed", top: 60, left: 0, right: 0, zIndex: 49,
+              position: "fixed",
+              top: "calc(60px + env(safe-area-inset-top, 0px))",
+              left: 0, right: 0, zIndex: 49,
               background: "rgba(12,12,15,0.98)",
               borderBottom: `1px solid ${BORDER}`,
               boxShadow: "0 24px 60px rgba(0,0,0,0.7)",
-              maxHeight: "calc(100vh - 60px)",
+              maxHeight: "calc(100dvh - 60px - env(safe-area-inset-top, 0px))",
               overflowY: "auto",
             }}>
             <div style={{ padding: "8px clamp(16px,5vw,32px) clamp(20px,4vh,32px)" }}>
 
               {/* Nav links */}
               {[
-                { href: "#browse", label: "Browse Crew",    emoji: "🎬", action: () => { setMenuOpen(false); document.getElementById("browse")?.scrollIntoView({ behavior: "smooth" }); } },
-                { href: "/search", label: "Search All Crew", emoji: "🔍", action: () => setMenuOpen(false) },
+                { href: "/search", label: "Find crew", emoji: "🔍", action: () => setMenuOpen(false) },
+                { href: "/about", label: "About", emoji: "▰", action: () => setMenuOpen(false) },
               ].map(({ href, label, emoji, action }) => (
                 <a key={label} href={href}
                   onClick={(e) => { e.preventDefault(); action(); }}
@@ -176,22 +177,21 @@ function Nav() {
                 onClick={() => setMenuOpen(false)}
                 style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 0", borderBottom: `1px solid ${BORDER}`, textDecoration: "none" }}>
                 <span style={{ fontSize: 22, width: 32, textAlign: "center", flexShrink: 0 }}>👤</span>
-                <span style={{ fontFamily: FT, fontSize: 15, color: MUTED }}>Sign In</span>
+                <span style={{ fontFamily: FT, fontSize: 15, color: MUTED }}>Log in</span>
               </Link>
 
               {/* Join CTA card — encouragement */}
-              <div style={{
+              <div className="app-surface" style={{
                 marginTop: "clamp(18px,4vw,24px)",
                 padding: "clamp(18px,4vw,24px)",
-                borderRadius: 20,
                 background: "linear-gradient(135deg, rgba(255,179,0,0.07) 0%, rgba(255,179,0,0.03) 100%)",
                 border: "1px solid rgba(255,179,0,0.2)",
               }}>
                 <p style={{ fontFamily: FD, fontWeight: 700, fontSize: 18, color: TEXT, marginBottom: 8 }}>
-                  Are you a crew member?
+                  Work in production?
                 </p>
                 <p style={{ fontFamily: FT, fontSize: 14, color: MUTED, lineHeight: 1.6, marginBottom: 18 }}>
-                  Build your profile once. Get discovered by directors, producers, and production companies across the Philippines — for free.
+                  Create a card. Get found. Stay booked.
                 </p>
                 <Link href="/auth?intent=join"
                   onClick={() => setMenuOpen(false)}
@@ -204,7 +204,7 @@ function Nav() {
                     boxShadow: "0 4px 24px rgba(255,179,0,0.28)",
                   }}
                   className="transition-all hover:opacity-85 active:scale-[0.98]">
-                  Join SetReady — it&apos;s free <ArrowRight size={15} />
+                  Join free <ArrowRight size={15} />
                 </Link>
               </div>
 
@@ -219,21 +219,30 @@ function Nav() {
 /* ─── Hero Search ─── */
 function HeroSearch() {
   const router = useRouter();
-  const [query,     setQuery]     = useState("");
-  const [results,   setResults]   = useState<SuggestProfile[]>([]);
-  const [open,      setOpen]      = useState(false);
-  const [canSearch, setCanSearch] = useState(true);
+  const [query,           setQuery]           = useState("");
+  const [results,         setResults]         = useState<SuggestProfile[]>([]);
+  const [roleSuggestions, setRoleSuggestions] = useState<IndustryRole[]>([]);
+  const [open,            setOpen]            = useState(false);
+  const [canSearch,       setCanSearch]       = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!query.trim() || !canSearch) { setResults([]); return; }
+    if (!query.trim()) { setRoleSuggestions([]); return; }
+    setRoleSuggestions(searchIndustryRoles(query, 5));
+  }, [query]);
+
+  useEffect(() => {
+    if (!query.trim() || !canSearch) {
+      const t = setTimeout(() => setResults([]), 0);
+      return () => clearTimeout(t);
+    }
     const t = setTimeout(async () => {
       try {
         const sb = createClient();
         const { data } = await sb.from("profiles")
           .select("id,slug,display_name,role,city")
           .ilike("display_name", `%${query}%`)
-          .limit(6);
+          .limit(4);
         setResults(data ?? []);
       } catch {
         setCanSearch(false);
@@ -252,74 +261,113 @@ function HeroSearch() {
   }
 
   const roleLabel = (r: string) => ROLES.find((x) => x.id === r)?.label ?? r;
+  const showDropdown = open && query.trim().length > 0 && (roleSuggestions.length > 0 || results.length > 0);
 
   return (
     <form onSubmit={submit} style={{ width: "100%", position: "relative" }}>
-      <div style={{
+      <div className="hero-search-pill" style={{
         display: "flex", alignItems: "center", gap: 8,
-        background: "rgba(24,24,29,0.96)", border: "1px solid rgba(255,255,255,0.12)",
-        borderRadius: 50, padding: "6px 6px 6px 22px",
-        boxShadow: "0 8px 40px rgba(0,0,0,0.45)",
+        background: "rgba(70,74,79,0.82)", border: "1px solid rgba(255,255,255,0.12)",
+        borderRadius: 999, padding: "7px 8px 7px 22px",
+        boxShadow: "0 18px 60px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.08)",
       }}>
         <Search size={17} style={{ color: MUTED, flexShrink: 0 }} />
         <input
           ref={inputRef}
           type="text"
-          placeholder="Search by name, role, or discipline…"
+          placeholder="Role, name, city"
           value={query}
           onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
           onBlur={() => setTimeout(() => setOpen(false), 160)}
           style={{
             flex: 1, background: "none", border: "none", outline: "none",
-            color: TEXT, fontFamily: FT, fontSize: "clamp(14px,2vw,16px)",
+            color: TEXT, fontFamily: FT, fontSize: "clamp(16px,2vw,17px)",
             padding: "10px 4px", minWidth: 0,
           }}
         />
         {query && (
-          <button type="button" onClick={() => { setQuery(""); setResults([]); inputRef.current?.focus(); }}
+          <button type="button" onClick={() => { setQuery(""); setResults([]); setRoleSuggestions([]); inputRef.current?.focus(); }}
             style={{ background: "none", border: "none", color: MUTED, cursor: "pointer", padding: "0 6px", flexShrink: 0 }}>
             <X size={14} />
           </button>
         )}
         <button type="submit"
+          className="hero-search-submit transition-all hover:opacity-90 active:scale-[0.98]"
           style={{
-            background: AMBER, color: "#000", border: "none", borderRadius: 50,
-            padding: "clamp(10px,2vw,13px) clamp(18px,3vw,28px)",
+            background: AMBER, color: "#000", border: "none", borderRadius: 999,
+            minHeight: 42, padding: "0 clamp(22px,3.5vw,34px)",
             fontFamily: FT, fontWeight: 700, fontSize: "clamp(13px,1.5vw,15px)",
             flexShrink: 0, cursor: "pointer", whiteSpace: "nowrap",
-          }}
-          className="transition-all hover:opacity-85 active:scale-[0.97]">
-          Find Crew
+            boxShadow: "0 1px 0 rgba(255,255,255,0.35) inset",
+          }}>
+          <span>Find</span>
         </button>
       </div>
 
-      {open && results.length > 0 && (
+      {showDropdown && (
         <div style={{
           position: "absolute", top: "calc(100% + 10px)", left: 0, right: 0,
-          background: "#18181D", border: "1px solid rgba(255,255,255,0.1)",
+          background: "#101010", border: "1px solid rgba(255,255,255,0.1)",
           borderRadius: 20, overflow: "hidden", zIndex: 100,
           boxShadow: "0 20px 60px rgba(0,0,0,0.7)",
         }}>
-          {results.map((p, i) => (
-            <Link key={p.id} href={`/crew/${p.slug}`}
-              style={{
-                display: "flex", alignItems: "center", gap: 14, padding: "14px 20px",
-                borderBottom: i < results.length - 1 ? `1px solid ${DIVIDER}` : "none",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "#222229")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
-              <div style={{ width: 38, height: 38, borderRadius: 10, flexShrink: 0, background: "#0C0C0F", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: FD, fontWeight: 700, fontSize: 13, color: AMBER }}>
-                {p.display_name.slice(0, 2).toUpperCase()}
+          {/* Role suggestions */}
+          {roleSuggestions.length > 0 && (
+            <>
+              <div style={{ padding: "10px 20px 6px" }}>
+                <span style={{ fontFamily: FT, fontSize: 11, fontWeight: 600, color: MUTED, letterSpacing: "0.06em", textTransform: "uppercase" }}>Roles</span>
               </div>
-              <div style={{ minWidth: 0 }}>
-                <p style={{ fontFamily: FD, fontWeight: 600, fontSize: 14, color: TEXT, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.display_name}</p>
-                <p style={{ fontFamily: FT, fontSize: 12, color: MUTED, marginTop: 2 }}>{roleLabel(p.role)} · {p.city}</p>
+              {roleSuggestions.map((r, i) => (
+                <button key={r.id} type="button"
+                  onClick={() => { setOpen(false); router.push(`/search?role=${r.id}`); }}
+                  style={{
+                    width: "100%", display: "flex", alignItems: "center", gap: 14, padding: "11px 20px",
+                    background: "transparent", border: "none", cursor: "pointer", textAlign: "left",
+                    borderBottom: i < roleSuggestions.length - 1 || results.length > 0 ? `1px solid ${DIVIDER}` : "none",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "#181818")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, flexShrink: 0, background: "rgba(255,179,0,0.08)", border: "1px solid rgba(255,179,0,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ fontSize: 15 }}>🎬</span>
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <p style={{ fontFamily: FD, fontWeight: 600, fontSize: 14, color: TEXT }}>{r.label}</p>
+                    <p style={{ fontFamily: FT, fontSize: 12, color: MUTED, marginTop: 1 }}>{r.department}</p>
+                  </div>
+                </button>
+              ))}
+            </>
+          )}
+
+          {/* People suggestions */}
+          {results.length > 0 && (
+            <>
+              <div style={{ padding: "10px 20px 6px", borderTop: roleSuggestions.length > 0 ? `1px solid ${BORDER}` : "none" }}>
+                <span style={{ fontFamily: FT, fontSize: 11, fontWeight: 600, color: MUTED, letterSpacing: "0.06em", textTransform: "uppercase" }}>People</span>
               </div>
-            </Link>
-          ))}
+              {results.map((p, i) => (
+                <Link key={p.id} href={`/crew/${p.slug}`}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 14, padding: "12px 20px",
+                    borderBottom: i < results.length - 1 ? `1px solid ${DIVIDER}` : "none",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "#181818")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, flexShrink: 0, background: "#000", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: FD, fontWeight: 700, fontSize: 13, color: AMBER }}>
+                    {p.display_name.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <p style={{ fontFamily: FD, fontWeight: 600, fontSize: 14, color: TEXT, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.display_name}</p>
+                    <p style={{ fontFamily: FT, fontSize: 12, color: MUTED, marginTop: 1 }}>{roleLabel(p.role)} · {p.city}</p>
+                  </div>
+                </Link>
+              ))}
+            </>
+          )}
+
           <Link href={`/search?q=${encodeURIComponent(query)}`}
-            style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 20px", borderTop: `1px solid ${DIVIDER}`, background: "rgba(255,179,0,0.04)" }}
+            style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 20px", borderTop: `1px solid ${DIVIDER}`, background: "rgba(255,179,0,0.04)" }}
             onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,179,0,0.09)")}
             onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,179,0,0.04)")}>
             <span style={{ fontFamily: FT, fontSize: 14, color: AMBER }}>See all results for &ldquo;{query}&rdquo;</span>
@@ -348,7 +396,7 @@ function ProfileCard({ p, exiting, cardIdx }: { p: Profile; exiting: "left" | "r
       style={{
         position: "absolute", inset: 0,
         background: SURFACE,
-        borderRadius: 28,
+        borderRadius: 8,
         border: `1px solid rgba(255,255,255,0.09)`,
         boxShadow: "0 32px 100px rgba(0,0,0,0.65)",
         overflow: "hidden",
@@ -497,38 +545,36 @@ function CrewBrowser() {
       if (roleFilter) q = q.eq("role", roleFilter);
       if (availOnly)  q = q.eq("availability", "available");
       const { data } = await q;
-      const list = data ?? [];
-      setProfiles(list.length > 0 ? list : (SAMPLE_PROFILES as unknown as Profile[]));
+      setProfiles(((data ?? []) as Profile[]));
       setIdx(0);
     } catch {
-      setProfiles(SAMPLE_PROFILES as unknown as Profile[]);
+      setProfiles([]);
     } finally {
       setLoading(false);
     }
   }, [roleFilter, availOnly]);
 
-  useEffect(() => { loadProfiles(); }, [loadProfiles]);
+  useEffect(() => {
+    const t = setTimeout(() => { void loadProfiles(); }, 0);
+    return () => clearTimeout(t);
+  }, [loadProfiles]);
 
-  const navigateRef = useRef<(dir: "skip") => void>(() => {});
-
-  function skip() {
+  const skip = useCallback(() => {
     if (exiting || idx >= profiles.length) return;
     setExiting("right");
     setTimeout(() => {
       setIdx((i) => i + 1);
       setExiting(null);
     }, 400);
-  }
-
-  navigateRef.current = skip;
+  }, [exiting, idx, profiles.length]);
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight" || e.key === "Escape") navigateRef.current("skip");
+      if (e.key === "ArrowRight" || e.key === "Escape") skip();
     };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
-  }, []);
+  }, [skip]);
 
   const current = profiles[idx];
   const next1   = profiles[idx + 1];
@@ -536,7 +582,7 @@ function CrewBrowser() {
   const done    = !loading && idx >= profiles.length;
 
   const filterPillStyle = (active: boolean, activeColor = AMBER) => ({
-    padding: "8px 16px", borderRadius: 20,
+    padding: "8px 16px", borderRadius: 8,
     border: `1px solid ${active ? `${activeColor}45` : BORDER}`,
     background: active ? `${activeColor}0D` : SURFACE,
     color: active ? activeColor : MUTED,
@@ -548,24 +594,23 @@ function CrewBrowser() {
   });
 
   return (
-    <section id="browse" style={{ background: BG_ALT, padding: "clamp(60px,10vw,100px) 0" }}>
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 clamp(20px,5vw,64px)" }}>
+    <section id="browse" className="section-pad" style={{ background: BG_ALT }}>
+      <div className="app-container">
 
         {/* Section header */}
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 32 }}>
           <div>
-            <p style={{ fontFamily: FT, fontSize: 11, fontWeight: 700, color: AMBER, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 10 }}>
-              Browse Crew
+            <p className="quiet-label" style={{ fontFamily: FT, color: AMBER, marginBottom: 10 }}>
+              Marketplace
             </p>
             <h2 style={{ fontFamily: FD, fontWeight: 700, fontSize: "clamp(1.7rem,3.5vw,2.6rem)", color: TEXT, letterSpacing: "-0.025em", lineHeight: 1.1 }}>
-              Find your next{" "}
-              <span style={{ color: AMBER }}>collaborator.</span>
+              Crew, ready.
             </h2>
           </div>
           <Link href="/search"
             style={{ fontFamily: FT, fontSize: 13, fontWeight: 500, color: MUTED, display: "flex", alignItems: "center", gap: 4 }}
             className="transition-colors hover:text-white">
-            View all <ArrowRight size={13} />
+            Open search <ArrowRight size={13} />
           </Link>
         </div>
 
@@ -596,7 +641,7 @@ function CrewBrowser() {
           <div
             style={{
               position: "relative",
-              width: "min(420px, 92vw)",
+              width: "min(420px, calc(100vw - 32px))",
               height: "clamp(480px, 68vh, 580px)",
             }}
             onTouchStart={(e) => setTouchStartX(e.touches[0].clientX)}
@@ -609,7 +654,7 @@ function CrewBrowser() {
 
             {loading ? (
               /* Loading skeleton */
-              <div style={{ position: "absolute", inset: 0, background: SURFACE, borderRadius: 28, border: `1px solid ${BORDER}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16 }}>
+              <div className="app-surface" style={{ position: "absolute", inset: 0, background: SURFACE, border: `1px solid ${BORDER}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16 }}>
                 <div style={{ width: 60, height: 60, borderRadius: 18, background: "rgba(255,255,255,0.04)" }} className="animate-pulse" />
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
                   <div style={{ width: 140, height: 16, borderRadius: 8, background: "rgba(255,255,255,0.05)" }} className="animate-pulse" />
@@ -619,15 +664,15 @@ function CrewBrowser() {
               </div>
             ) : done ? (
               /* End of deck */
-              <div style={{ position: "absolute", inset: 0, background: SURFACE, borderRadius: 28, border: `1px solid ${BORDER}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: "clamp(24px,5%,40px)", textAlign: "center" }}>
+              <div className="app-surface" style={{ position: "absolute", inset: 0, background: SURFACE, border: `1px solid ${BORDER}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: "clamp(24px,5%,40px)", textAlign: "center" }}>
                 <div style={{ width: 64, height: 64, borderRadius: 20, background: "rgba(255,255,255,0.04)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Users size={28} style={{ color: MUTED }} />
                 </div>
                 <div>
-                  <p style={{ fontFamily: FD, fontWeight: 700, fontSize: 20, color: TEXT, marginBottom: 8 }}>You've seen them all</p>
+              <p style={{ fontFamily: FD, fontWeight: 700, fontSize: 20, color: TEXT, marginBottom: 8 }}>End of deck</p>
                   <p style={{ fontFamily: FT, fontSize: 14, color: MUTED, lineHeight: 1.55 }}>
                     {profiles.length > 0
-                      ? "Browse all profiles in the full search view."
+                      ? "Open the full marketplace."
                       : "No crew profiles yet. Be the first to join."}
                   </p>
                 </div>
@@ -638,7 +683,7 @@ function CrewBrowser() {
                   </button>
                   <Link href="/search"
                     style={{ padding: "11px 20px", borderRadius: 14, background: AMBER, color: "#000", fontFamily: FT, fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 6, textDecoration: "none" }}>
-                    View all <ArrowRight size={13} />
+                    Find crew <ArrowRight size={13} />
                   </Link>
                 </div>
               </div>
@@ -708,17 +753,17 @@ function CrewBrowser() {
                     textDecoration: "none",
                   }}
                   className="transition-all hover:opacity-85 active:scale-[0.97]">
-                  View Profile <ArrowRight size={15} />
+                  View card <ArrowRight size={15} />
                 </Link>
               </div>
 
               {/* Counter + hint */}
               <div style={{ textAlign: "center" }}>
                 <p style={{ fontFamily: FT, fontSize: 12, color: "rgba(255,255,255,0.18)" }}>
-                  {idx + 1} of {profiles.length} crew members
+                  {idx + 1} / {profiles.length}
                 </p>
                 <p style={{ fontFamily: FT, fontSize: 11, color: "rgba(255,255,255,0.12)", marginTop: 3 }}>
-                  Swipe or → key to skip
+                  Swipe to browse
                 </p>
               </div>
             </div>
@@ -732,19 +777,19 @@ function CrewBrowser() {
 /* ─── Page ─── */
 export default function HomePage() {
   return (
-    <div style={{ background: BG, minHeight: "100vh", overflowX: "hidden" }}>
+    <div className="mobile-nav-pad" style={{ background: BG, minHeight: "100dvh", overflowX: "hidden" }}>
       <Nav />
 
       {/* ── HERO ── */}
       <section style={{
         position: "relative", display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center", textAlign: "center",
-        minHeight: "100vh", overflow: "hidden",
-        padding: "clamp(100px,16vw,180px) clamp(20px,5vw,60px) clamp(60px,10vw,100px)",
+        minHeight: "100dvh", overflow: "hidden",
+        padding: "clamp(96px,15vw,168px) clamp(16px,5vw,60px) clamp(48px,8vw,88px)",
       }}>
         {/* Ambient glow */}
         <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: "8%", pointerEvents: "none" }}>
-          <div style={{ width: "min(900px,100vw)", height: 700, background: "radial-gradient(ellipse 55% 45% at 50% 40%, rgba(255,179,0,0.07) 0%, rgba(74,158,255,0.03) 45%, transparent 70%)" }} />
+          <div style={{ width: "min(900px,100vw)", height: 700, background: "radial-gradient(ellipse 55% 45% at 50% 35%, rgba(255,255,255,0.055) 0%, rgba(255,204,0,0.045) 42%, transparent 72%)" }} />
         </div>
 
         {/* Badge */}
@@ -755,19 +800,19 @@ export default function HomePage() {
             background: "rgba(255,179,0,0.09)", color: AMBER, padding: "6px 18px", borderRadius: 20, border: "1px solid rgba(255,179,0,0.18)",
           }}>
             <span style={{ width: 5, height: 5, borderRadius: "50%", background: AMBER, display: "inline-block" }} />
-            Now Live · Philippines
+            Film crew on demand
           </span>
         </div>
 
         {/* Headline */}
-        <h1 className="anim-up d1" style={{
+        <h1 className="hero-title anim-up d1 text-balance" style={{
           fontFamily: FD, fontWeight: 700, color: TEXT,
-          fontSize: "clamp(2.6rem,8vw,5.8rem)",
           letterSpacing: "-0.038em", lineHeight: 1.04,
           marginBottom: 24, maxWidth: 800,
         }}>
-          The crew behind<br />every great{" "}
-          <span style={{ color: AMBER, textShadow: "0 0 80px rgba(255,179,0,0.22)" }}>production.</span>
+          <span className="hidden sm:inline">Find film crew. </span>
+          <span className="sm:hidden">Find film<br />crew.<br /></span>
+          <span style={{ color: AMBER, textShadow: "0 0 80px rgba(255,204,0,0.2)" }}>Fast.</span>
         </h1>
 
         {/* Subtitle */}
@@ -776,106 +821,40 @@ export default function HomePage() {
           color: MUTED, lineHeight: 1.7, marginBottom: 48,
           maxWidth: "min(500px,90vw)",
         }}>
-          SetReady connects directors, producers, and production houses
-          with verified film and TV professionals across the Philippines.
+          Search roles. Compare cards. Connect when ready.
         </p>
 
         {/* Search */}
-        <div className="anim-up d3" style={{ width: "100%", maxWidth: "min(640px,92vw)", marginBottom: 28, position: "relative", zIndex: 10 }}>
+        <div className="hero-search-wrap anim-up d3" style={{ width: "100%", maxWidth: "min(640px,92vw)", marginBottom: 28, position: "relative", zIndex: 10 }}>
           <HeroSearch />
         </div>
 
-        {/* Scroll CTA */}
-        <div className="anim-up d4" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-          <a href="#browse"
-            onClick={(e) => { e.preventDefault(); document.getElementById("browse")?.scrollIntoView({ behavior: "smooth" }); }}
-            style={{
-              display: "inline-flex", alignItems: "center", gap: 8,
-              fontFamily: FT, fontSize: 15, fontWeight: 500, color: MUTED,
-              cursor: "pointer", border: "none", background: "none",
-              padding: "10px 20px",
-            }}
-            className="transition-colors hover:text-white">
-            Browse crew <ArrowDown size={16} />
-          </a>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 18, flexWrap: "wrap" }}>
           <Link href="/auth?intent=join"
-            style={{ fontFamily: FT, fontSize: 13, color: "rgba(255,255,255,0.25)", display: "flex", alignItems: "center", gap: 5 }}
-            className="transition-colors hover:text-white/50">
-            Join as a crew member <ArrowRight size={12} />
+            style={{
+              fontFamily: FT, fontSize: 14, fontWeight: 700,
+              color: "#000", background: AMBER,
+              minHeight: 40, padding: "0 22px", borderRadius: 999,
+              display: "flex", alignItems: "center", gap: 6,
+              boxShadow: "0 1px 0 rgba(255,255,255,0.35) inset",
+            }}
+            className="transition-all hover:opacity-90 active:scale-[0.98]">
+            Join <ArrowRight size={13} />
+          </Link>
+          <Link href="/about"
+            style={{
+              fontFamily: FT, fontSize: 14, fontWeight: 700,
+              color: AMBER, minHeight: 40, padding: "0 18px",
+              borderRadius: 999, border: `1px solid ${AMBER}`,
+              background: "rgba(255,204,0,0.06)",
+              display: "flex", alignItems: "center", gap: 6,
+              boxShadow: "0 0 0 1px rgba(255,204,0,0.08) inset",
+            }}
+            className="transition-all hover:bg-yellow-400/10 active:scale-[0.98]">
+            Why built <ArrowRight size={13} />
           </Link>
         </div>
-
-        {/* Trust strip */}
-        <div className="anim-up d5" style={{ position: "absolute", bottom: "clamp(32px,5vw,60px)", left: 0, right: 0, display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 32, pointerEvents: "none" }}>
-          {[{ icon: "🎬", text: "16 disciplines" }, { icon: "📍", text: "Nationwide" }, { icon: "🔒", text: "Contact gating" }].map((s) => (
-            <span key={s.text} style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: FT, fontSize: 13, color: "rgba(255,255,255,0.2)" }}>
-              <span style={{ fontSize: 15 }}>{s.icon}</span>{s.text}
-            </span>
-          ))}
-        </div>
       </section>
-
-      {/* ── CARD BROWSER ── */}
-      <CrewBrowser />
-
-      {/* ── JOIN CTA ── */}
-      <section style={{ background: BG, padding: "clamp(64px,10vw,120px) 0" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 clamp(20px,5vw,64px)" }}>
-          <div style={{ borderRadius: 28, overflow: "hidden", position: "relative", background: "#0E0E12", border: "1px solid rgba(255,179,0,0.12)" }}>
-            <div style={{ height: 1, background: "linear-gradient(90deg, transparent 5%, rgba(255,179,0,0.35) 50%, transparent 95%)" }} />
-            <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 70% 60% at 50% 110%, rgba(255,179,0,0.07) 0%, transparent 60%)", pointerEvents: "none" }} />
-            <div style={{ position: "relative", padding: "clamp(48px,8vw,96px) clamp(28px,6vw,80px)", textAlign: "center" }}>
-              <p style={{ fontFamily: FT, fontSize: 11, fontWeight: 700, color: AMBER, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 20 }}>
-                For Crew Members
-              </p>
-              <h2 style={{ fontFamily: FD, fontWeight: 700, fontSize: "clamp(1.9rem,5vw,3.8rem)", color: TEXT, marginBottom: 20, letterSpacing: "-0.03em", lineHeight: 1.1 }}>
-                Get discovered.<br /><span style={{ color: AMBER }}>Build your reel.</span>
-              </h2>
-              <p style={{ fontFamily: FT, fontSize: "clamp(15px,2vw,17px)", color: MUTED, maxWidth: 460, margin: "0 auto 48px", lineHeight: 1.7 }}>
-                Create your free crew profile — list your equipment, past productions,
-                and specializations. Let production teams find you.
-              </p>
-              <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 16 }}>
-                <Link href="/auth?intent=join"
-                  style={{ display: "inline-flex", alignItems: "center", gap: 8, fontFamily: FT, fontSize: "clamp(14px,1.8vw,16px)", fontWeight: 600, background: AMBER, color: "#000", padding: "16px 36px", borderRadius: 28, boxShadow: "0 4px 28px rgba(255,179,0,0.28)", letterSpacing: "-0.01em" }}
-                  className="transition-all hover:opacity-85 active:scale-[0.97]">
-                  Create Profile <ArrowRight size={16} />
-                </Link>
-                <Link href="/search"
-                  style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: FT, fontSize: "clamp(14px,1.8vw,16px)", fontWeight: 500, color: MUTED, padding: "16px 20px" }}
-                  className="transition-all hover:opacity-70">
-                  Browse crew instead
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── FOOTER ── */}
-      <footer style={{ background: "#080809", borderTop: `1px solid ${DIVIDER}`, padding: "clamp(40px,6vw,64px) 0" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 clamp(20px,5vw,64px)", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 32 }}>
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-              <Clapperboard size={16} style={{ color: AMBER }} strokeWidth={2} />
-              <span style={{ fontFamily: FD, fontWeight: 700, fontSize: 16, color: TEXT, letterSpacing: "-0.02em" }}>SetReady</span>
-            </div>
-            <p style={{ fontFamily: FT, fontSize: 12, color: "rgba(255,255,255,0.25)", lineHeight: 1.6 }}>
-              Film & TV crew marketplace · Philippines
-            </p>
-          </div>
-          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "12px 32px" }}>
-            {[{ href: "/search", label: "Find Crew" }, { href: "/auth?intent=join", label: "Join" }, { href: "/auth", label: "Sign In" }].map((l) => (
-              <Link key={l.href} href={l.href} style={{ fontFamily: FT, fontSize: 13, color: "rgba(255,255,255,0.32)" }} className="hover:text-white/60 transition-colors">
-                {l.label}
-              </Link>
-            ))}
-          </div>
-          <p style={{ fontFamily: FT, fontSize: 12, color: "rgba(255,255,255,0.18)" }}>
-            © {new Date().getFullYear()} SetReady
-          </p>
-        </div>
-      </footer>
     </div>
   );
 }

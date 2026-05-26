@@ -1,23 +1,37 @@
-import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
-
-const geist = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
+import BottomNav from "@/components/BottomNav";
 
 export const metadata: Metadata = {
-  title: "SetReady — Film & TV Crew Marketplace Philippines",
-  description: "Connect with verified directors, cinematographers, editors, sound designers, and more. The crew marketplace built for Philippine film and TV production.",
-  openGraph: {
-    title: "SetReady",
-    description: "The crew marketplace for Philippine film & TV.",
-    siteName: "SetReady",
+  title: "YourNextCrew — The Philippines' First Crew Network",
+  description: "The Philippines' first platform built for every side of production. Find excellent crew for your project, or find the right job for your craft.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "YourNextCrew",
   },
+  openGraph: {
+    title: "YourNextCrew",
+    description: "The Philippines' first. Built for every side of production.",
+    siteName: "YourNextCrew",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#000000",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${geist.variable} h-full`}>
-      <body className="min-h-full">{children}</body>
+    <html lang="en" className="h-full">
+      <body className="min-h-full">
+        {children}
+        <BottomNav />
+      </body>
     </html>
   );
 }

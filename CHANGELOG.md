@@ -12,6 +12,20 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ---
 
+## [0.5.0-beta.1] — 2026-05-26
+
+### Added
+- **iOS bottom tab bar** — fixed bottom navigation (Home / Find / About / Account) shown on mobile (<768px). Hidden on `/auth`, `/join`, `/admin`. Replaces the hamburger menu on mobile.
+
+### Changed
+- **Safe area insets** — all fixed/sticky navs now pad `env(safe-area-inset-top)` so content clears the iPhone notch/Dynamic Island. `viewport-fit=cover` enabled.
+- **Input font-size 16px** — was 15px; prevents iOS Safari from auto-zooming when tapping any text input across the app.
+- **`100dvh` viewport** — replaced all `100vh` with `100dvh` so Safari's browser chrome doesn't clip page height.
+- **Tap behavior** — added `-webkit-tap-highlight-color: transparent` (removes blue flash on tap) and `touch-action: manipulation` on buttons/links (removes 300ms tap delay).
+- **`-webkit-text-size-adjust`** — prevents iOS from auto-resizing fonts on orientation change.
+
+---
+
 ## [0.4.1-beta.1] — 2026-05-26
 
 ### Fixed

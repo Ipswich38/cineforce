@@ -9,11 +9,11 @@ import { ArrowLeft, Mail, Clapperboard, CheckCircle2 } from "lucide-react";
 const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
 const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
 
-const BG      = "#0C0C0F";
-const SURFACE = "#18181D";
-const TEXT    = "#F0EDE5";
-const MUTED   = "#78787F";
-const AMBER   = "#FFB300";
+const BG      = "#000000";
+const SURFACE = "#101010";
+const TEXT    = "#F7F7F2";
+const MUTED   = "#8E8E93";
+const AMBER   = "#FFCC00";
 const BORDER  = "rgba(255,255,255,0.09)";
 
 function GoogleLogo() {
@@ -67,30 +67,30 @@ function AuthPageInner() {
 
   const inputStyle: React.CSSProperties = {
     width: "100%", padding: "13px 16px", borderRadius: 12,
-    border: `1px solid ${BORDER}`, background: "#111115",
-    color: TEXT, fontFamily: FT, fontSize: 15, outline: "none",
+    border: `1px solid ${BORDER}`, background: "#080808",
+    color: TEXT, fontFamily: FT, fontSize: 16, outline: "none",
   };
 
   return (
-    <div style={{ background: BG, minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+    <div style={{ background: BG, minHeight: "100dvh", display: "flex", flexDirection: "column" }}>
 
       {/* Nav */}
-      <div style={{ padding: "clamp(14px,2.5vh,22px) clamp(20px,5vw,40px)", display: "flex", alignItems: "center" }}>
+      <div className="app-container topbar-inner" style={{ justifyContent: "flex-start" }}>
         <Link href="/"
           style={{ display: "flex", alignItems: "center", gap: 8, color: MUTED }}
           className="hover:opacity-70 transition-opacity">
           <ArrowLeft size={15} />
           <Clapperboard size={15} style={{ color: AMBER }} strokeWidth={2} />
-          <span style={{ fontFamily: FD, fontWeight: 700, fontSize: 16, color: TEXT, letterSpacing: "-0.02em" }}>SetReady</span>
+          <span style={{ fontFamily: FD, fontWeight: 700, fontSize: 16, color: TEXT, letterSpacing: "-0.02em" }}>YourNextCrew</span>
         </Link>
       </div>
 
       {/* Card area */}
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "clamp(20px,4vh,52px) clamp(16px,5vw,32px)" }}>
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", paddingBlock: "clamp(20px,4vh,52px)" }}>
         <div style={{ width: "100%", maxWidth: 440 }}>
 
           {/* Card */}
-          <div style={{ background: SURFACE, borderRadius: 28, border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 20px 60px rgba(0,0,0,0.6)", overflow: "hidden" }}>
+          <div className="app-surface" style={{ background: SURFACE, border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 20px 60px rgba(0,0,0,0.6)", overflow: "hidden" }}>
             <div style={{ height: 2, background: `linear-gradient(90deg, ${AMBER}, rgba(255,179,0,0.28), transparent)` }} />
 
             <div style={{ padding: "clamp(28px,7%,44px)" }}>
@@ -129,30 +129,36 @@ function AuthPageInner() {
               ) : (
                 <>
                   {/* Tab switcher */}
-                  <div style={{ display: "flex", background: "#111115", borderRadius: 12, padding: 4, marginBottom: 28, gap: 4 }}>
+                  <div style={{ display: "flex", background: "#080808", borderRadius: 12, padding: 4, marginBottom: 28, gap: 4 }}>
                     {(["signin", "join"] as const).map((t) => (
                       <button key={t} type="button"
                         onClick={() => { setTab(t); setError(""); }}
                         style={{
                           flex: 1, height: 38, borderRadius: 9, cursor: "pointer",
-                          background: tab === t ? SURFACE : "transparent",
-                          border: tab === t ? `1px solid ${BORDER}` : "1px solid transparent",
-                          color: tab === t ? TEXT : MUTED,
-                          fontFamily: FT, fontSize: 14, fontWeight: tab === t ? 600 : 400,
+                          background: tab === t
+                            ? t === "join" ? AMBER : SURFACE
+                            : "transparent",
+                          border: tab === t
+                            ? t === "join" ? "none" : `1px solid ${BORDER}`
+                            : "1px solid transparent",
+                          color: tab === t
+                            ? t === "join" ? "#000" : TEXT
+                            : MUTED,
+                          fontFamily: FT, fontSize: 14, fontWeight: tab === t ? 700 : 400,
                           transition: "all 0.18s",
                         }}>
-                        {t === "signin" ? "Sign In" : "Join as Crew"}
+                        {t === "signin" ? "Log in" : "Join"}
                       </button>
                     ))}
                   </div>
 
                   <h1 style={{ fontFamily: FD, fontWeight: 700, fontSize: "clamp(22px,4vw,26px)", color: TEXT, letterSpacing: "-0.024em", marginBottom: 8 }}>
-                    {tab === "signin" ? "Welcome back" : "Join SetReady"}
+                    {tab === "signin" ? "Welcome back" : "Get listed"}
                   </h1>
                   <p style={{ fontFamily: FT, fontSize: 15, color: MUTED, lineHeight: 1.55, marginBottom: 28 }}>
                     {tab === "signin"
-                      ? "Sign in to manage your crew profile."
-                      : "Get discovered by production teams across the Philippines."}
+                      ? "Manage your card and requests."
+                      : "Build your crew card in minutes."}
                   </p>
 
                   {/* Google — primary CTA */}
@@ -169,13 +175,13 @@ function AuthPageInner() {
                     onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 4px 18px rgba(0,0,0,0.32)")}
                     onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.22)")}>
                     <GoogleLogo />
-                    {tab === "signin" ? "Continue with Google" : "Sign up with Google"}
+                    {tab === "signin" ? "Continue with Google" : "Join with Google"}
                   </button>
 
                   {/* Divider */}
                   <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
                     <div style={{ flex: 1, height: 1, background: BORDER }} />
-                    <span style={{ fontFamily: FT, fontSize: 12, color: "rgba(255,255,255,0.28)" }}>or continue with email</span>
+                    <span style={{ fontFamily: FT, fontSize: 12, color: "rgba(255,255,255,0.28)" }}>or email</span>
                     <div style={{ flex: 1, height: 1, background: BORDER }} />
                   </div>
 
@@ -191,7 +197,7 @@ function AuthPageInner() {
                       <Mail size={15} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: MUTED, pointerEvents: "none" }} />
                       <input
                         type="email"
-                        placeholder="Enter your email address"
+                        placeholder="Email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
@@ -208,7 +214,7 @@ function AuthPageInner() {
                         color: "#000", fontFamily: FT, fontSize: 15, fontWeight: 700,
                         cursor: loading ? "not-allowed" : "pointer",
                       }}>
-                      {loading ? "Sending link…" : tab === "signin" ? "Send sign-in link" : "Continue with email"}
+                      {loading ? "Sending…" : tab === "signin" ? "Send link" : "Continue"}
                     </button>
                   </form>
 
@@ -220,7 +226,7 @@ function AuthPageInner() {
                       onClick={() => { setTab(tab === "signin" ? "join" : "signin"); setError(""); }}
                       style={{ color: AMBER, background: "none", border: "none", cursor: "pointer", fontFamily: FT, fontSize: 14, fontWeight: 500 }}
                       className="hover:opacity-70 transition-opacity">
-                      {tab === "signin" ? "Join as Crew" : "Sign In"}
+                      {tab === "signin" ? "Join" : "Log in"}
                     </button>
                   </p>
                 </>
@@ -231,8 +237,7 @@ function AuthPageInner() {
           {/* Footer note */}
           {!sent && tab === "join" && (
             <p style={{ fontFamily: FT, fontSize: 12, color: "rgba(255,255,255,0.2)", textAlign: "center", marginTop: 20, lineHeight: 1.7 }}>
-              By joining you agree to SetReady&apos;s terms of service.
-              <br />Your profile will be visible to verified production teams.
+              Your card is public. Contact stays gated.
             </p>
           )}
         </div>
@@ -243,7 +248,7 @@ function AuthPageInner() {
 
 export default function AuthPage() {
   return (
-    <Suspense fallback={<div style={{ background: BG, minHeight: "100vh" }} />}>
+    <Suspense fallback={<div style={{ background: BG, minHeight: "100dvh" }} />}>
       <AuthPageInner />
     </Suspense>
   );

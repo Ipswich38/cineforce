@@ -10,13 +10,12 @@ import { ArrowLeft, Check, Clapperboard, Lock } from "lucide-react";
 const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
 const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
 
-const BG      = "#0C0C0F";
-const SURFACE = "#18181D";
-const TEXT    = "#F0EDE5";
-const MUTED   = "#78787F";
-const AMBER   = "#FFB300";
+const BG      = "#000000";
+const SURFACE = "#101010";
+const TEXT    = "#F7F7F2";
+const MUTED   = "#8E8E93";
+const AMBER   = "#FFCC00";
 const BORDER  = "rgba(255,255,255,0.07)";
-const DIVIDER = "rgba(255,255,255,0.05)";
 
 const SPEC_BY_ROLE: Record<string, string[]> = {
   director:          ["Narrative Film", "Commercial / TVC", "Music Video", "Documentary", "Short Film", "Online Content"],
@@ -39,8 +38,8 @@ const SPEC_BY_ROLE: Record<string, string[]> = {
 
 const inputStyle: React.CSSProperties = {
   width: "100%", padding: "13px 16px", borderRadius: 12,
-  border: `1px solid ${BORDER}`, background: "#111115",
-  color: TEXT, fontFamily: FT, fontSize: 15, outline: "none",
+  border: `1px solid ${BORDER}`, background: "#080808",
+  color: TEXT, fontFamily: FT, fontSize: 16, outline: "none",
 };
 
 function SectionLabel({ children, optional }: { children: React.ReactNode; optional?: boolean }) {
@@ -169,7 +168,7 @@ export default function JoinPage() {
 
   if (checking) {
     return (
-      <div style={{ background: BG, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ background: BG, minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ width: 32, height: 32, borderRadius: "50%", border: `2px solid ${AMBER}`, borderTopColor: "transparent", animation: "spin 0.7s linear infinite" }} />
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
@@ -177,41 +176,41 @@ export default function JoinPage() {
   }
 
   return (
-    <div style={{ background: BG, minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+    <div style={{ background: BG, minHeight: "100dvh", display: "flex", flexDirection: "column" }}>
 
       {/* Nav */}
-      <div style={{ padding: "clamp(14px,2.5vh,22px) clamp(20px,5vw,40px)", display: "flex", alignItems: "center" }}>
+      <div className="app-container topbar-inner" style={{ justifyContent: "flex-start" }}>
         <Link href="/"
           style={{ display: "flex", alignItems: "center", gap: 8, color: MUTED }}
           className="hover:opacity-70 transition-opacity">
           <ArrowLeft size={15} />
           <Clapperboard size={15} style={{ color: AMBER }} strokeWidth={2} />
-          <span style={{ fontFamily: FD, fontWeight: 700, fontSize: 16, color: TEXT, letterSpacing: "-0.02em" }}>SetReady</span>
+          <span style={{ fontFamily: FD, fontWeight: 700, fontSize: 16, color: TEXT, letterSpacing: "-0.02em" }}>YourNextCrew</span>
         </Link>
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, maxWidth: 560, margin: "0 auto", width: "100%", padding: "clamp(8px,2vh,24px) clamp(16px,5vw,32px) clamp(48px,8vh,80px)" }}>
+      <div className="app-container-form" style={{ flex: 1, paddingBlock: "clamp(12px,3vh,28px) clamp(56px,8vh,88px)" }}>
 
         {/* Header */}
         <div style={{ marginBottom: 32 }}>
           <h1 style={{ fontFamily: FD, fontWeight: 700, fontSize: "clamp(24px,5vw,32px)", color: TEXT, letterSpacing: "-0.028em", marginBottom: 10 }}>
-            Create your profile
+            Build your card
           </h1>
           <p style={{ fontFamily: FT, fontSize: 15, color: MUTED, lineHeight: 1.6 }}>
-            Tell production teams who you are and what you bring to set. You can edit everything later.
+            Role, reel, credits, kit, availability.
           </p>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
           {/* ── YOUR ROLE ── */}
-          <div data-section="role" style={{ background: SURFACE, borderRadius: 20, border: `1px solid ${BORDER}`, padding: "clamp(20px,5%,28px)" }}>
-            <SectionLabel>Your Role</SectionLabel>
+          <div className="app-surface" data-section="role" style={{ background: SURFACE, border: `1px solid ${BORDER}`, padding: "clamp(20px,5%,28px)" }}>
+            <SectionLabel>Role</SectionLabel>
             <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
 
               <Field label="Primary role *" error={errors.role}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <div className="responsive-two" style={{ gap: 8 }}>
                   {ROLES.map((r) => (
                     <button key={r.id} type="button"
                       onClick={() => { setRole(r.id); setSpecializations([]); if (errors.role) setErrors((p) => ({ ...p, role: "" })); }}
@@ -219,7 +218,7 @@ export default function JoinPage() {
                         display: "flex", alignItems: "center", gap: 8,
                         padding: "10px 14px", borderRadius: 12, cursor: "pointer",
                         border: `1px solid ${role === r.id ? "rgba(255,179,0,0.4)" : BORDER}`,
-                        background: role === r.id ? "rgba(255,179,0,0.08)" : "#111115",
+                        background: role === r.id ? "rgba(255,179,0,0.08)" : "#080808",
                         color: role === r.id ? AMBER : MUTED,
                         fontFamily: FT, fontSize: 13, fontWeight: 500,
                         transition: "all 0.15s", textAlign: "left",
@@ -242,7 +241,7 @@ export default function JoinPage() {
                           style={{
                             padding: "7px 14px", borderRadius: 20, cursor: "pointer",
                             border: `1px solid ${sel ? "rgba(255,179,0,0.4)" : BORDER}`,
-                            background: sel ? "rgba(255,179,0,0.09)" : "#111115",
+                            background: sel ? "rgba(255,179,0,0.09)" : "#080808",
                             color: sel ? AMBER : MUTED,
                             fontFamily: FT, fontSize: 13, fontWeight: 500,
                             transition: "all 0.15s",
@@ -258,8 +257,8 @@ export default function JoinPage() {
           </div>
 
           {/* ── ABOUT YOU ── */}
-          <div style={{ background: SURFACE, borderRadius: 20, border: `1px solid ${BORDER}`, padding: "clamp(20px,5%,28px)" }}>
-            <SectionLabel>About You</SectionLabel>
+          <div className="app-surface" style={{ background: SURFACE, border: `1px solid ${BORDER}`, padding: "clamp(20px,5%,28px)" }}>
+            <SectionLabel>Basics</SectionLabel>
             <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
 
               <Field label="Full name *" error={errors.displayName}>
@@ -280,7 +279,7 @@ export default function JoinPage() {
                       style={{
                         padding: "10px 14px", borderRadius: 12, cursor: "pointer",
                         border: `1px solid ${expLevel === e.id ? "rgba(255,179,0,0.35)" : BORDER}`,
-                        background: expLevel === e.id ? "rgba(255,179,0,0.07)" : "#111115",
+                        background: expLevel === e.id ? "rgba(255,179,0,0.07)" : "#080808",
                         color: expLevel === e.id ? AMBER : MUTED,
                         fontFamily: FT, fontSize: 13, fontWeight: 500,
                         display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -294,13 +293,13 @@ export default function JoinPage() {
               </Field>
 
               <Field label="Availability">
-                <div style={{ display: "flex", gap: 8 }}>
+                <div className="mobile-stack" style={{ display: "flex", gap: 8 }}>
                   {AVAILABILITY.map((a) => (
                     <button key={a.id} type="button" onClick={() => setAvailability(a.id)}
                       style={{
                         flex: 1, padding: "10px 8px", borderRadius: 12, cursor: "pointer",
                         border: `1px solid ${availability === a.id ? `${a.color}45` : BORDER}`,
-                        background: availability === a.id ? `${a.color}10` : "#111115",
+                        background: availability === a.id ? `${a.color}10` : "#080808",
                         color: availability === a.id ? a.color : MUTED,
                         fontFamily: FT, fontSize: 13, fontWeight: 500,
                         transition: "all 0.15s",
@@ -314,12 +313,12 @@ export default function JoinPage() {
           </div>
 
           {/* ── RATES & LINKS ── */}
-          <div style={{ background: SURFACE, borderRadius: 20, border: `1px solid ${BORDER}`, padding: "clamp(20px,5%,28px)" }}>
-            <SectionLabel optional>Rates &amp; Links</SectionLabel>
+          <div className="app-surface" style={{ background: SURFACE, border: `1px solid ${BORDER}`, padding: "clamp(20px,5%,28px)" }}>
+            <SectionLabel optional>Work</SectionLabel>
             <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
 
-              <Field label="Day rate (₱)" hint="Leave blank if you prefer to discuss">
-                <div style={{ display: "flex", gap: 8 }}>
+              <Field label="Rate (₱)" hint="Optional">
+                <div className="mobile-stack" style={{ display: "flex", gap: 8 }}>
                   <FocusInput type="number" value={rateMin} onChange={(e) => setRateMin(e.target.value)} placeholder="Min" />
                   <FocusInput type="number" value={rateMax} onChange={(e) => setRateMax(e.target.value)} placeholder="Max" />
                   <select value={rateUnit} onChange={(e) => setRateUnit(e.target.value)} style={{ ...selectBase, minWidth: 90, flexShrink: 0 }}>
@@ -328,7 +327,7 @@ export default function JoinPage() {
                 </div>
               </Field>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div className="responsive-two">
                 <Field label="Showreel URL">
                   <FocusInput type="url" value={showreelUrl} onChange={(e) => setShowreelUrl(e.target.value)} placeholder="YouTube / Vimeo" />
                 </Field>
@@ -340,11 +339,11 @@ export default function JoinPage() {
           </div>
 
           {/* ── BIO ── */}
-          <div style={{ background: SURFACE, borderRadius: 20, border: `1px solid ${BORDER}`, padding: "clamp(20px,5%,28px)" }}>
-            <SectionLabel optional>Bio</SectionLabel>
+          <div className="app-surface" style={{ background: SURFACE, border: `1px solid ${BORDER}`, padding: "clamp(20px,5%,28px)" }}>
+            <SectionLabel optional>Pitch</SectionLabel>
             <Field>
               <textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={4}
-                placeholder="Tell clients about your style, experience, and what you bring to set."
+                placeholder="Short, sharp, specific."
                 style={{ ...inputStyle, resize: "none", lineHeight: 1.65 }}
                 onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(255,179,0,0.4)")}
                 onBlur={(e)  => (e.currentTarget.style.borderColor = BORDER)} />
@@ -352,13 +351,13 @@ export default function JoinPage() {
           </div>
 
           {/* ── CONTACT DETAILS ── */}
-          <div style={{ background: SURFACE, borderRadius: 20, border: `1px solid ${BORDER}`, padding: "clamp(20px,5%,28px)" }}>
-            <SectionLabel optional>Contact Details</SectionLabel>
+          <div className="app-surface" style={{ background: SURFACE, border: `1px solid ${BORDER}`, padding: "clamp(20px,5%,28px)" }}>
+            <SectionLabel optional>Contact</SectionLabel>
             <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 20, padding: "12px 14px", borderRadius: 12, background: "rgba(50,215,75,0.05)", border: "1px solid rgba(50,215,75,0.14)" }}>
               <Lock size={14} style={{ color: "#32D74B", marginTop: 2, flexShrink: 0 }} />
               <p style={{ fontFamily: FT, fontSize: 13, color: "rgba(240,237,229,0.6)", lineHeight: 1.55 }}>
                 <strong style={{ color: TEXT, fontWeight: 600 }}>Private.</strong>{" "}
-                Only revealed when you accept a connection request from a client.
+                Shared only after you accept.
               </p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -392,20 +391,19 @@ export default function JoinPage() {
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                 boxShadow: "0 4px 24px rgba(255,179,0,0.22)",
               }}>
-              {saving ? "Creating your profile…" : <><Check size={17} /> Create My Profile</>}
+              {saving ? "Creating…" : <><Check size={17} /> Publish card</>}
             </button>
 
             <button onClick={() => router.push("/dashboard")} disabled={saving}
               style={{ background: "none", border: "none", cursor: "pointer", fontFamily: FT, fontSize: 13, color: "rgba(255,255,255,0.28)", padding: "6px 0" }}
               className="hover:text-white/50 transition-colors">
-              Skip &amp; go to dashboard →
+              Skip
             </button>
           </div>
 
           {/* Divider + Terms */}
           <p style={{ fontFamily: FT, fontSize: 12, color: "rgba(255,255,255,0.2)", textAlign: "center", lineHeight: 1.7, paddingBottom: 8 }}>
-            By creating a profile you agree to SetReady&apos;s terms of service.
-            <br />Your profile will be visible to verified production teams.
+            Public card. Private contact.
           </p>
 
         </div>
