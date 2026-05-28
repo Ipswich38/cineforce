@@ -12,6 +12,368 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ---
 
+## [0.16.0-beta.1] — 2026-05-29
+
+### Added
+- **Airbnb-style Account page** — full profile management with 3 sticky tabs (Profile, Availability, Account); Airbnb-inspired header with amber avatar, name, role, city, and live availability dot; inline editing for display name, bio, and city.
+- **Full professional editing in settings** — crew can now edit role, experience level, rate range, rate unit, and specializations directly from the Account page without re-doing /join.
+- **Tag-based specializations editor** — chip input with add/remove; saves to `profiles.specializations`.
+- **Crew availability calendar** — month-grid calendar in the Availability tab; crew tap future dates to mark them busy or available; stored in `crew_availability` table via `POST /api/availability`.
+- **Accepted bookings in Availability tab** — crew see their accepted connection requests with a Chat button.
+- **`POST/GET /api/availability`** — crew set/read their busy dates; GET is public for date-based crew filtering.
+- **`PATCH /api/profile`** — secure profile update API allowing all editable fields.
+- **Airbnb 3-pill hero search** — replaced text search with Role / Project Dates / City pill bar; each pill opens a dropdown (roles grid, date range calendar, city list); navigates to /search with filter params.
+- **Date range calendar in hero** — inline month calendar for picking project start/end dates; range highlighting between selected dates; navigates to /search with `from` and `to` params.
+- **"How CineVerse works" section** — 3-step explainer (search by role+date, browse cards, connect and chat) + calendar feature callout with link to /search.
+
+### Schema migration required (run in Supabase console)
+```sql
+create table if not exists crew_availability (
+  id       uuid default gen_random_uuid() primary key,
+  crew_id  uuid references auth.users(id) on delete cascade not null,
+  date     date not null,
+  status   text not null default 'busy' check (status in ('busy', 'booked')),
+  unique(crew_id, date)
+);
+alter table crew_availability enable row level security;
+create policy "crew_avail_own"  on crew_availability for all     using (auth.uid() = crew_id) with check (auth.uid() = crew_id);
+create policy "crew_avail_read" on crew_availability for select  using (true);
+```
+
+---
+
+## [0.15.0-beta.1] — 2026-05-28
+
+### Added
+- **In-app real-time chat** — accepted connections unlock a `/chat/[connectionId]` page with live Supabase Realtime messaging, date separators, auto-scroll, and auto-expanding textarea.
+- **Chat button in crew inbox** — accepted requests in the "Earlier" section now show a "Chat" button linking directly to the conversation.
+- **Chat button in client requests** — accepted sent requests in the client dashboard show an "Open Chat" button.
+- **Messages API** — `POST /api/messages` inserts a message after verifying the user is part of the accepted connection.
+
+### Changed
+- **"Decline" replaced with "Skip For Now"** — crew can skip a request (status: "skipped") instead of permanently declining; badge shows gray "Skipped" label.
+- **Inbox notification text** — updated from "tap Accept or Decline" to "tap Accept or Skip".
+
+---
+
+## [0.14.1-beta.1] — 2026-05-28
+
+### Changed
+- **Bottom nav — auth-aware** — logged-in crew see Home(dashboard) / Find / My Card / Account(settings); logged-in clients see Home(dashboard) / Find Crew / Account(settings); logged-out users keep the public Home / Find / About / Account(sheet) nav.
+
+---
+
+## [0.14.0-beta.1] — 2026-05-28
+
+### Added
+- **Profile photo upload** — `/settings` lets users upload from gallery or take a photo with camera; uploads to Supabase Storage (`avatars` bucket), updates `profiles.avatar_url`.
+- **Legal page** — `/legal` with three tabs: Terms of Service, Privacy Policy, and Data Privacy Act (RA 10173) compliance notice.
+- **Account pause** — users can pause their account from Settings; paused profiles are hidden from search results and cannot receive connection requests.
+- **Account deactivation** — reason selector + type "DELETE" confirmation; calls `DELETE /api/account` which removes avatar from Storage, deletes profile row, and deletes auth user; redirects to homepage.
+- **Settings link** — added Settings link in crew and client dashboard headers.
+
+### Schema migration required (run in Supabase console)
+```sql
+alter table profiles add column if not exists is_paused boolean not null default false;
+
+insert into storage.buckets (id, name, public) values ('avatars', 'avatars', true)
+  on conflict (id) do nothing;
+
+create policy "avatars_select" on storage.objects for select using (bucket_id = 'avatars');
+create policy "avatars_insert" on storage.objects for insert with check (
+  bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]
+);
+create policy "avatars_update" on storage.objects for update using (
+  bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]
+);
+create policy "avatars_delete" on storage.objects for delete using (
+  bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]
+);
+```
+
+---
+
+## [0.13.4-beta.1] — 2026-05-28
+
+### Fixed
+- **Admin API routes** — all admin API routes (`/api/admin/invite`, `/api/admin/tickets`, `/api/admin/activate`) now check the `admin_auth` cookie instead of Supabase user email, consistent with the passcode login.
+
+---
+
+## [0.13.3-beta.1] — 2026-05-28
+
+### Changed
+- **Admin login — passcode only** — replaced Google OAuth on admin login with a server-verified passcode; sets an httpOnly cookie valid for 7 days; passcode controlled via `ADMIN_PASSCODE` env var.
+
+---
+
+## [0.13.2-beta.1] — 2026-05-28
+
+### Changed
+- **Auth page — Google only** — removed email magic link option; sign-in and sign-up now use Google OAuth exclusively.
+
+---
+
+## [0.13.1-beta.1] — 2026-05-28
+
+### Added
+- **Admin login page** — `/admin/login` with email magic link; unauthenticated `/admin` visits now redirect to `/admin/login` instead of the homepage; magic link redirects back to `/admin` on success.
+
+### Changed
+- `ADMIN_EMAIL` moved from hardcoded fallback to Vercel env var (`waevpoint@gmail.com`).
+
+---
+
+## [0.13.0-beta.1] — 2026-05-28
+
+### Added
+- **Invite-only signups** — `/join` now starts with an invite code step; code validated via `POST /api/invite/validate` before user can proceed; `used_count` incremented via `POST /api/invite/use` after successful profile creation.
+- **Admin Invites tab** — generate 1/5/10/20 single-use codes via `POST /api/admin/invite`; stats row (Total/Unused/Used); per-code Copy button; Copy all unused button; availability/used/expired status badges.
+- **Invite code API routes** — `GET/POST /api/admin/invite` (admin-only code generation and listing), `POST /api/invite/validate` (public code check), `POST /api/invite/use` (auth-required usage increment).
+
+### Schema migration required (run in Supabase console)
+```sql
+create table if not exists invite_codes (
+  id          uuid default gen_random_uuid() primary key,
+  code        text unique not null,
+  max_uses    integer not null default 1,
+  used_count  integer not null default 0,
+  expires_at  timestamptz,
+  created_at  timestamptz default now()
+);
+```
+
+---
+
+## [0.12.1-beta.1] — 2026-05-28
+
+### Changed
+- **UI scale reduced 10%** — added `zoom: 0.9` to `body` in `globals.css`; scales all inline-px fonts, padding, gaps, and icons uniformly without touching individual component files.
+
+---
+
+## [0.12.0-beta.1] — 2026-05-28
+
+### Added
+- **Admin dashboard** — rebuilt `/admin` with three tabs: Overview (KPI cards + recent signups + open ticket preview), Users (searchable/filterable table with email, type, status, city, joined date), and Tickets (support queue with expand/status/notes management). Fetches all metrics via Supabase service role including auth user emails.
+- **Support tickets** — `support_tickets` table; `/help` page with category picker and form; `POST /api/tickets` for submission; `PATCH /api/admin/tickets` for admin status updates and notes.
+- **Help link** — crew and client dashboards now show a Help link in the header (visible on sm+ screens).
+
+### Schema migration required (run in Supabase console)
+```sql
+create table if not exists support_tickets (
+  id          uuid default gen_random_uuid() primary key,
+  user_id     uuid references auth.users(id) on delete set null,
+  user_email  text not null,
+  category    text not null default 'other' check (category in ('billing','bug','account','feature','other')),
+  subject     text not null,
+  message     text not null,
+  status      text not null default 'open' check (status in ('open','in_progress','resolved')),
+  admin_notes text,
+  created_at  timestamptz default now(),
+  updated_at  timestamptz default now()
+);
+alter table support_tickets enable row level security;
+create policy "tickets_insert"   on support_tickets for insert with check (auth.uid() = user_id);
+create policy "tickets_own_read" on support_tickets for select using (auth.uid() = user_id);
+create or replace function update_updated_at() returns trigger language plpgsql as $ begin new.updated_at = now(); return new; end; $;
+create trigger support_tickets_updated_at before update on support_tickets for each row execute function update_updated_at();
+```
+
+---
+
+## [0.11.0-beta.1] — 2026-05-28
+
+### Added
+- **Founding Member system** — `/subscribe` page shows beta/founding member status, GCash donation coming soon, and upcoming ₱150/month pricing at launch.
+- **Subscription infrastructure** — `lib/subscription.ts` with `IS_BETA` flag, `trialDaysLeft`, `computeStatus`, `isSubscriptionActive` helpers. During beta all logged-in users have full access; flip `IS_BETA = false` at launch to activate 14-day trial gate.
+- **Trial started at** — `trial_started_at` column written on join for both crew and client accounts, ready for billing activation at launch.
+- **Membership banner** — crew and client dashboards show a "Founding Member" badge linking to `/subscribe` during beta; switches to trial countdown and upgrade prompt when `IS_BETA = false`.
+- **Viewer subscription gate** — `ConnectButton` accepts `viewerSubActive` prop; shows upgrade prompt instead of connect form when viewer's subscription is expired (inactive post-beta).
+
+### Changed
+- Dashboard page now fetches `trial_started_at` and passes `subStatus`/`daysLeft` to both crew and client dashboard components.
+- `isPremium` on crew profiles now uses `isSubscriptionActive` instead of raw `premium_status === "active"` check.
+
+### Schema migration required (run in Supabase console)
+```sql
+alter table profiles add column if not exists trial_started_at timestamptz;
+alter table profiles drop constraint if exists profiles_premium_status_check;
+alter table profiles add constraint profiles_premium_status_check
+  check (premium_status in ('free','trial','active','expired','requested'));
+alter table profiles alter column premium_status set default 'trial';
+update profiles set premium_status = 'trial', trial_started_at = now()
+  where premium_status in ('free','requested') and trial_started_at is null;
+```
+
+---
+
+## [0.10.2-beta.1] — 2026-05-27
+
+### Changed
+- **PWA icon font — Raleway Bold** — switched icon font from Playfair Display to Raleway Bold to match the logo's clean geometric sans-serif letterforms.
+
+---
+
+## [0.10.1-beta.1] — 2026-05-27
+
+### Changed
+- **PWA icon updated** — both `icon.tsx` (512x512) and `apple-icon.tsx` (180x180) now render a black rounded square with a gold gradient border and serif "CV" text in gold, matching the CineVerse brand logo. Uses Playfair Display Bold (WOFF1 from `@fontsource/playfair-display`).
+
+---
+
+## [0.10.0-beta.1] — 2026-05-27
+
+### Added
+- **Client account system** — account type picker on `/join` lets users register as Crew or as a Hiring client; client profiles store name, company, city, and production type
+- **Client dashboard** — dedicated dashboard for client accounts with Requests tab (sent connection requests) and Saved tab (favorited crew)
+- `favorites` table with RLS so clients can save crew they like
+- `account_type`, `company`, and `production_type` columns on `profiles`
+
+---
+
+## [0.9.12-beta.1] — 2026-05-27
+
+### Fixed
+- **Logout now fully clears session** — replaced `router.push("/")` with `window.location.href = "/"` after `signOut()` so the hard reload flushes the Next.js router cache; navigating to `/dashboard` after logout correctly redirects to `/auth`.
+
+---
+
+## [0.9.11-beta.1] — 2026-05-27
+
+### Changed
+- **Background video — homepage only** — removed `/about` from video pages; video now plays on the homepage hero only.
+
+---
+
+## [0.9.10-beta.1] — 2026-05-27
+
+### Changed
+- **Account tab sheet — logged-in state** — tapping Account now always opens a sheet. When logged in: shows Dashboard (amber pill) + Log out (outline pill). When logged out: shows Sign up + Log in (existing behaviour).
+
+---
+
+## [0.9.9-beta.1] — 2026-05-27
+
+### Changed
+- **Background video scoped to hero and about** — video layer now only plays on `/` and `/about`; all other pages show grain + vignette only.
+
+---
+
+## [0.9.8-beta.1] — 2026-05-27
+
+### Added
+- **Background video layer** — compressed cinematic video (`bg.mp4`, 755KB) plays as a low-opacity background. Gated by `navigator.connection`: skipped automatically on `slow-2g`, `2g`, or `saveData` mode. Fades in smoothly over 1.8s only after the video is fully buffered — never blocks the UI.
+
+---
+
+## [0.9.7-beta.1] — 2026-05-27
+
+### Added
+- **Cinematic FX overlay** — `CinematicFX` component adds animated film grain (SVG feTurbulence, 0.35s jitter loop) and a vignette edge darkening across all pages. Pure CSS, zero network cost, no performance impact.
+
+---
+
+## [0.9.6-beta.1] — 2026-05-27
+
+### Changed
+- **Full CineVerse brand sweep** — replaced all remaining `YourNextCrew` references in `README.md` and all `docs/` files. Updated localStorage key from `ync_legal_v1` to `cv_legal_v1` (existing users will see the legal modal once more on next visit).
+
+---
+
+## [0.9.5-beta.1] — 2026-05-27
+
+### Changed
+- **Domain update** — fallback URL in `lib/email.ts` updated to `cineverseph.vercel.app`. Production URL controlled by `NEXT_PUBLIC_APP_URL` env var.
+
+---
+
+## [0.9.4-beta.1] — 2026-05-27
+
+### Changed
+- **Rebrand: EastBronx → CineVerse** — all user-facing strings, metadata, email templates, and PWA config updated. Icon updated from `eBx` to `CV`.
+
+---
+
+## [0.9.3-beta.1] — 2026-05-27
+
+### Changed
+- **PWA icon updated** — `app/icon.tsx` and `app/apple-icon.tsx` now display `eBx` instead of `YC`. Affects the home screen icon on iPhone and the browser favicon.
+
+---
+
+## [0.9.2-beta.1] — 2026-05-27
+
+### Added
+- **Auto-update on deploy** — `VersionChecker` client component polls `/api/version` every 5 minutes and on tab visibility change; silently reloads the app when a new version is detected so users always run the latest build without a manual refresh.
+
+---
+
+## [0.9.1-beta.1] — 2026-05-27
+
+### Changed
+- **Domain update** — fallback URL in `lib/email.ts` updated from `yournextcrew.vercel.app` to `eastbronx.vercel.app`. Production URL is now controlled by the `NEXT_PUBLIC_APP_URL` Vercel env var.
+
+---
+
+## [0.9.0-beta.1] — 2026-05-27
+
+### Changed
+- **Rebrand: YourNextCrew → EastBronx** — all user-facing strings updated across the full codebase.
+  - `package.json` name field updated to `eastbronx`.
+  - `app/layout.tsx` — page title now `"EastBronx — Your Next Set Is a Tap Away."`, updated description and all OG/Apple Web App tags.
+  - `app/manifest.ts` — PWA `name`, `short_name`, and `description` updated; app installs as "EastBronx" on device.
+  - Nav logos across all pages (home, auth, join, dashboard, about, search, crew profile) updated to `EastBronx`.
+  - Hero label chip on homepage changed to the new tagline: `"Your Next Set Is a Tap Away."`
+  - Auth join-tab subtitle updated to include the tagline.
+  - BottomNav account sheet heading updated to `"Your next set is a tap away."`
+  - `components/LegalModal.tsx` — all legal text references updated to `EastBronx`.
+  - `lib/email.ts` — Resend `from` name updated to `EastBronx`.
+  - Production URL fallback (`yournextcrew.vercel.app`) intentionally preserved — domain change is a separate infrastructure step.
+
+---
+
+## [0.8.2-beta.1] — 2026-05-27
+
+### Fixed
+- **Dashboard build errors** — extracted all `profile.field` accesses into typed local variables (`profileId`, `displayName`, `profileCity`, `profileBio`, `rateMin`, `rateMax`, `foundingTier`) to prevent TypeScript inferring `unknown` inside JSX conditionals. Availability toggle now correctly updates by `id` (respects RLS).
+
+---
+
+## [0.8.1-beta.1] — 2026-05-27
+
+### Fixed
+- **Dashboard TypeScript error** — replaced inline fields array (which caused `unknown` type inference on the Icon prop) with explicit JSX rows for Name and City fields.
+
+---
+
+## [0.8.0-beta.1] — 2026-05-27
+
+### Fixed
+- **Publish card error** — removed `specializations` from `profiles.insert()` (column does not exist on that table). Specializations are now correctly inserted into `profile_specializations` as separate rows after the profile is created.
+
+### Added
+- **Connection request email notification** — crew member receives an email via Resend when a production sends them a project request. Email shows project title, client email, and message with a direct "View in Dashboard" link.
+- **`POST /api/connections`** — new server route that creates a connection request and triggers the crew notification email. `ConnectButton` now uses this route instead of inserting directly via the Supabase client.
+
+### Changed
+- **Dashboard redesign** — full rebuild of `DashboardClient`:
+  - Header: notification bell with red badge count; tapping navigates to Inbox tab.
+  - **Inbox tab** (default): amber banner when pending requests exist; each request shown as a notification card (project title, client email, message, date, Accept/Decline). Previous responses shown in a compact "Earlier" list.
+  - **My Card tab**: role icon + name + experience; city, rate, bio, specialization chips. Availability toggle is now an inline dropdown pill that saves to Supabase on selection. Activation card moved here.
+  - Removed old stats strip and 2-tab layout.
+- **`dashboard/page.tsx`** — also fetches `profile_specializations` and passes them to `DashboardClient`.
+
+---
+
+## [0.7.0-beta.1] — 2026-05-27
+
+### Added
+- **Legal consent modal** — shown before first Google or email sign-up if the user has not yet agreed. Geo-aware jurisdiction detection (PH / EU / UK / US / Other) via `api.country.is` with timezone fallback. Bottom-sheet modal with scroll-to-unlock: checkboxes remain disabled until the user scrolls to the bottom. Three checkboxes: Terms of Use, jurisdiction-specific Privacy Policy (RA 10173 / GDPR / CCPA), and Beta Platform Notice. "I Agree & Continue" amber pill activates only when all three are checked; "Decline" outline pill always available. Agreement stored in `localStorage` (`ync_legal_v1`) so returning users are not shown the modal again. Declining blocks sign-up flow.
+- **`components/LegalModal.tsx`** — self-contained modal component; exports `hasAgreedToTerms()` and `recordAgreement()` helpers used by the auth page.
+
+---
+
 ## [0.6.0-beta.1] — 2026-05-27
 
 ### Changed
