@@ -12,6 +12,70 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ---
 
+## [0.19.0-beta.1] — 2026-05-29
+
+### Added
+- **Location dropdown search** — live filter input at top of hero location dropdown; typing auto-filters cities across all regions; shows flat matched list when query present, full grouped regions when empty.
+- **Crew dropdown search** — live filter input at top of hero crew dropdown; typing filters roles by name or department with dept label shown inline; falls back to full dept-grouped grid when empty.
+- **Availability manual date entry** — "From" and "To" date inputs above the calendar picker; users can type or use native date picker in addition to clicking calendar cells.
+- **Smart search context banner** — Find page shows a prominent amber-tinted banner summarising the hero search selections (role · city · dates) so hirers immediately see their active filters without re-entering them.
+
+### Removed
+- **"Crew, ready." card stack section** — removed redundant Tinder-style crew browser (ProfileCard + CrewBrowser) from the Find page; the grid results already cover this use case.
+
+---
+
+## [0.18.0-beta.1] — 2026-05-29
+
+### Added
+- **41 crew roles across 9 departments** — expanded from 16 generic roles; new additions: 1st/2nd AC, DIT (on-set + post), Steadicam, Drone Operator, Best Boy Electric, Key Grip, Grip, Boom Operator, Sound Designer, Set Decorator, Props Master, Costume Designer, Hair Stylist, SFX/Prosthetics MUA, Producer, Line Producer, Production Coordinator, Location Manager, Casting Director, Motion Graphics Designer, Sound Editor, Still Photographer/BTS; all grouped by department (Directing, Camera, Lighting & Grip, Sound, Art Department, Costume & Makeup, Post Production, Production, Photography).
+- **Full Philippines location database** — 17 PH regions with ~120 cities/municipalities; key cities per province grouped under region headers (NCR all 17 LGUs, CAR, Regions I–XIII, BARMM); `PH_REGIONS` exported for grouped dropdowns; flat `PH_LOCATIONS` retained for search filters.
+
+### Changed
+- **Hero location dropdown** — renders region group headers with indented city list instead of flat scroll.
+- **Hero crew dropdown** — renders department section labels above 2-column role grid.
+- **Join form** — role picker grouped by department with dept label headers; city `<select>` uses `<optgroup>` per region.
+- **Settings** — role picker and city select updated to match join form grouping.
+
+---
+
+## [0.17.1-beta.1] — 2026-05-29
+
+### Fixed
+- **Dropdown transparency (root cause)** — removed `backdropFilter` from the search pill bar; iOS Safari does not render `position: absolute` siblings correctly when a sibling has a `backdropFilter` compositing layer. Pill bar now uses solid `rgba(10,10,16,0.96)` background.
+- **Dropdown item backgrounds** — all dropdown list item `background: transparent` replaced with explicit `backgroundColor: "#111116"` so no parent compositing bleed is possible on any browser.
+
+### Changed
+- **Search pill border** — changed from white-tinted border to amber `rgba(255,204,0,0.42)` with subtle amber outer glow; aligns bar with brand color.
+- **About page** — replaced off-brand teal `#2CC0C8` label with amber on "Beta Program" text.
+
+---
+
+## [0.17.0-beta.1] — 2026-05-29
+
+### Changed
+- **Hero layout** — search bar moved to top of hero (just below nav), edge-to-edge within app-container width matching logo/Join button alignment; tagline and CTAs now centered in the remaining viewport space below.
+- **Hero tagline** — replaced small label above search with a large cycling headline (`clamp(28px–56px)`, weight 800) below the search bar; three rotating messages with amber-highlighted keywords: "Find the right crew for your next project.", "Verified talent. Real availability. No cold DMs.", "The marketplace built for Philippine filmmakers."
+- **Message cycling** — headline fades between messages every 3.8s with a 450ms opacity transition.
+
+---
+
+## [0.16.12-beta.1] — 2026-05-29
+
+### Fixed
+- **Dropdown z-index** — CTA buttons ("Join as crew", "How it works") now render behind open search dropdowns; added explicit `zIndex: 1` to CTA wrapper so the dropdown at `zIndex: 9999` always paints on top.
+- **Dropdown transparency** — removed `backdropFilter: blur` from the click-away overlay (caused video to bleed through dropdown panels); dropdown container now uses `isolation: isolate` and fully opaque `#111116` background.
+
+---
+
+## [0.16.11-beta.1] — 2026-05-29
+
+### Fixed
+- **Search bar** — changed from solid `#111` (invisible against dark video) to frosted glass (`rgba(255,255,255,0.08)` + `backdrop-filter: blur`) so the pill bar is visually distinct against the hero video.
+- **Search dropdowns** — switched from `position: fixed` with `getBoundingClientRect()` (placed panels at wrong viewport coordinates) to `position: absolute` relative to the search bar container; dropdowns now appear directly below the pill bar.
+
+---
+
 ## [0.16.10-beta.1] — 2026-05-29
 
 ### Changed
