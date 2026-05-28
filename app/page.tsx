@@ -279,10 +279,10 @@ function BookingSearch() {
     left: dropRect.left,
     width: dropRect.width,
     zIndex: 9999,
-    background: "#111",
-    border: "1px solid rgba(255,255,255,0.1)",
+    background: "#0e0e12",
+    border: "1px solid rgba(255,255,255,0.12)",
     borderRadius: 24,
-    boxShadow: "0 20px 60px rgba(0,0,0,0.85)",
+    boxShadow: "0 24px 80px rgba(0,0,0,0.95)",
   };
 
   const pill = (id: "location" | "dates" | "crew"): React.CSSProperties => ({
@@ -304,16 +304,16 @@ function BookingSearch() {
   return (
     <div style={{ width: "100%", position: "relative" }} ref={barRef}>
       {openPanel && (
-        <div onClick={() => setOpenPanel(null)} style={{ position: "fixed", inset: 0, zIndex: 9998, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)" }} />
+        <div onClick={() => setOpenPanel(null)} style={{ position: "fixed", inset: 0, zIndex: 9998, background: "rgba(0,0,0,0.78)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" }} />
       )}
 
       {/* ── Horizontal pill bar ── */}
       <div style={{
         display: "flex", alignItems: "center",
-        background: "rgba(20,20,24,0.96)",
+        background: "#111",
         border: "1px solid rgba(255,255,255,0.13)",
         borderRadius: 999, padding: "5px",
-        boxShadow: "0 18px 60px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06)",
+        boxShadow: "0 18px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)",
       }}>
 
         {/* Location */}
@@ -553,12 +553,15 @@ export default function HomePage() {
         alignItems: "center", justifyContent: "center", textAlign: "center",
         minHeight: "100dvh",
         padding: "clamp(80px,12vw,140px) clamp(16px,5vw,48px) clamp(56px,8vw,80px)",
-        background: "linear-gradient(160deg, #08080d 0%, #0c0c14 45%, #060609 100%)",
+        background: "#000",
       }}>
-        {/* Subtle amber ambient glow */}
-        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-          <div style={{ width: "min(800px,100vw)", height: 600, background: "radial-gradient(ellipse 60% 50% at 50% 42%, rgba(255,204,0,0.055) 0%, rgba(255,120,0,0.025) 50%, transparent 72%)" }} />
-        </div>
+        {/* Video background */}
+        <video autoPlay loop muted playsInline
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", pointerEvents: "none" }}>
+          <source src="/bg.mp4" type="video/mp4" />
+        </video>
+        {/* Very dark overlay — keeps text + search bar readable */}
+        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.88)" }} />
 
         {/* Content */}
         <div style={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>

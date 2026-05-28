@@ -12,6 +12,13 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ---
 
+## [0.16.10-beta.1] — 2026-05-29
+
+### Changed
+- **Hero** — background video restored with a very dark overlay (88% black) for focus; search bar pill is now fully solid (`#111`); dropdown panels use deeper solid background; dropdown backdrop darkened to 78% opacity.
+
+---
+
 ## [0.16.9-beta.1] — 2026-05-29
 
 ### Changed
