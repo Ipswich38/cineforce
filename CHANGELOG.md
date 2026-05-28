@@ -12,6 +12,16 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ---
 
+## [0.16.1-beta.1] — 2026-05-29
+
+### Added
+- **Date-range filtering on search page** — `/search?from=YYYY-MM-DD&to=YYYY-MM-DD` now excludes crew who have marked any day in the range as busy in their availability calendar; orange date badge appears in active filters and can be removed independently.
+
+### Fixed
+- **City and date params from hero search** — search page now correctly initialises `city`, `from`, and `to` from URL params so the 3-pill hero search lands with all filters pre-applied.
+
+---
+
 ## [0.16.0-beta.1] — 2026-05-29
 
 ### Added
