@@ -12,6 +12,13 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ---
 
+## [0.16.8-beta.1] — 2026-05-29
+
+### Changed
+- **Hero** — replaced large h1 + badge with a single small label line directly above the search bar; removed tagline below search.
+
+---
+
 ## [0.16.7-beta.1] — 2026-05-29
 
 ### Changed

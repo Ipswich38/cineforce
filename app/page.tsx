@@ -965,42 +965,17 @@ export default function HomePage() {
         {/* Content */}
         <div style={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
 
-          {/* Badge */}
-          <div className="anim-up" style={{ marginBottom: 20 }}>
-            <span style={{
-              display: "inline-flex", alignItems: "center", gap: 8,
-              fontFamily: FT, fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
-              background: "rgba(255,179,0,0.08)", color: AMBER,
-              padding: "5px 16px", borderRadius: 20, border: "1px solid rgba(255,179,0,0.18)",
-            }}>
-              <span style={{ width: 5, height: 5, borderRadius: "50%", background: AMBER, display: "inline-block" }} />
-              Philippines Film Crew Marketplace
-            </span>
-          </div>
-
-          {/* Headline */}
-          <h1 className="hero-title anim-up d1 text-balance" style={{
-            fontFamily: FD, fontWeight: 700, color: TEXT,
-            letterSpacing: "-0.038em", lineHeight: 1.05,
-            marginBottom: 36, maxWidth: 680,
-          }}>
-            Find the right crew<br />
-            <span style={{ color: AMBER, textShadow: "0 0 80px rgba(255,204,0,0.2)" }}>for your next project.</span>
-          </h1>
-
           {/* Search bar */}
-          <div className="anim-up d2" style={{ width: "100%", maxWidth: "min(600px,calc(100vw - 32px))", marginBottom: 28 }}>
+          <div className="anim-up" style={{ width: "100%", maxWidth: "min(600px,calc(100vw - 32px))", marginBottom: 28 }}>
+            <p style={{
+              fontFamily: FD, fontSize: "clamp(13px,1.5vw,15px)", fontWeight: 600,
+              color: "rgba(255,255,255,0.55)", letterSpacing: "-0.01em",
+              marginBottom: 12, textAlign: "left",
+            }}>
+              Find the right crew for your next project.
+            </p>
             <BookingSearch />
           </div>
-
-          {/* Tagline */}
-          <p className="anim-up d3" style={{
-            fontFamily: FT, fontSize: "clamp(13px,1.6vw,15px)",
-            color: "rgba(255,255,255,0.4)", lineHeight: 1.6,
-            marginBottom: 32, maxWidth: "min(400px,90vw)",
-          }}>
-            Match by role, availability, and location.
-          </p>
 
           {/* CTAs */}
           <div className="anim-up d3" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
