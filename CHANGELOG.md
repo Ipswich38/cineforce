@@ -12,6 +12,13 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ---
 
+## [0.16.3-beta.1] — 2026-05-29
+
+### Changed
+- **Hero search — Airbnb-style integrated layout** — search bar is back inside the hero with the video background as the centrepiece between headline and CTA buttons; separate search section removed; headline shortened to make search the primary focus; tagline moved below search.
+
+---
+
 ## [0.16.2-beta.1] — 2026-05-29
 
 ### Changed
