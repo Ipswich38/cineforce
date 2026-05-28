@@ -12,6 +12,24 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ---
 
+## [0.16.5-beta.1] — 2026-05-29
+
+### Fixed
+- **Build error** — renamed internal `openPanel` function to `handleOpenPanel` to resolve name collision with `openPanel` state variable in `BookingSearch`; removed unused `Info` import.
+
+---
+
+## [0.16.4-beta.1] — 2026-05-29
+
+### Added
+- **"How it works" modal** — pulsing amber indicator button on hero opens a popup with the 3-step explainer and calendar callout; same content added as a static section on the /about page.
+
+### Changed
+- **Hero** — removed video background; replaced with static dark gradient + subtle amber ambient glow; `overflow: hidden` removed from hero section.
+- **Search dropdowns** — all panels (Role, Dates, City) now use `position: fixed` with viewport-relative coordinates so they always render above content regardless of parent overflow; the calendar is fully scrollable and never clipped.
+
+---
+
 ## [0.16.3-beta.1] — 2026-05-29
 
 ### Changed

@@ -4,12 +4,11 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { ROLES, AVAILABILITY, EXPERIENCE_LEVELS } from "@/lib/constants";
+import { ROLES, AVAILABILITY, EXPERIENCE_LEVELS, PH_LOCATIONS } from "@/lib/constants";
 import {
-  Search, MapPin, ArrowRight,
-  Clapperboard, X, RotateCcw, Users, Menu,
+  MapPin, ArrowRight,
+  Clapperboard, X, RotateCcw, Users, Menu, ChevronLeft, ChevronRight, Calendar,
 } from "lucide-react";
-import { searchIndustryRoles, type IndustryRole } from "@/lib/industryRoles";
 
 const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
 const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
@@ -33,7 +32,6 @@ type Profile = {
   rate_unit: string | null; bio: string | null;
 };
 
-type SuggestProfile = { id: string; slug: string; display_name: string; role: string; city: string };
 
 /* ─── Nav ─── */
 function Nav() {
@@ -72,7 +70,7 @@ function Nav() {
           {/* Logo */}
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
             <Clapperboard size={17} style={{ color: AMBER }} strokeWidth={2} />
-            <span style={{ fontFamily: FD, fontWeight: 700, fontSize: 17, color: TEXT, letterSpacing: "-0.02em" }}>YourNextCrew</span>
+            <span style={{ fontFamily: FD, fontWeight: 700, fontSize: 17, color: TEXT, letterSpacing: "-0.02em" }}>CineVerse</span>
           </Link>
 
           {/* Desktop nav links */}
@@ -216,166 +214,258 @@ function Nav() {
   );
 }
 
-/* ─── Hero Search ─── */
-function HeroSearch() {
+/* ─── Booking Search (Airbnb-style 3-pill) ─── */
+function BookingSearch() {
   const router = useRouter();
-  const [query,           setQuery]           = useState("");
-  const [results,         setResults]         = useState<SuggestProfile[]>([]);
-  const [roleSuggestions, setRoleSuggestions] = useState<IndustryRole[]>([]);
-  const [open,            setOpen]            = useState(false);
-  const [canSearch,       setCanSearch]       = useState(true);
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (!query.trim()) { setRoleSuggestions([]); return; }
-    setRoleSuggestions(searchIndustryRoles(query, 5));
-  }, [query]);
+  const [role,      setRole]      = useState("");
+  const [city,      setCity]      = useState("");
+  const [dateFrom,  setDateFrom]  = useState<string | null>(null);
+  const [dateTo,    setDateTo]    = useState<string | null>(null);
+  const [openPanel, setOpenPanel] = useState<"role" | "dates" | "city" | null>(null);
+  const [calMonth,  setCalMonth]  = useState(() => { const d = new Date(); d.setDate(1); return d; });
+  const [pickEnd,   setPickEnd]   = useState(false);
+  const [dropRect,  setDropRect]  = useState<{ top: number; left: number; width: number }>({ top: 0, left: 0, width: 0 });
+  const barRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!query.trim() || !canSearch) {
-      const t = setTimeout(() => setResults([]), 0);
-      return () => clearTimeout(t);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+  const calY = calMonth.getFullYear(), calM = calMonth.getMonth();
+  const calDow    = new Date(calY, calM, 1).getDay();
+  const calOffset = calDow === 0 ? 6 : calDow - 1;
+  const calDim    = new Date(calY, calM + 1, 0).getDate();
+  const calCells  = Array.from({ length: Math.ceil((calOffset + calDim) / 7) * 7 }, (_, i) => {
+    const d = i - calOffset + 1;
+    return d >= 1 && d <= calDim ? d : null;
+  });
+
+  function handleDateClick(ds: string) {
+    if (!dateFrom || !pickEnd) {
+      setDateFrom(ds); setDateTo(null); setPickEnd(true);
+    } else {
+      if (ds < dateFrom) { setDateFrom(ds); setDateTo(null); }
+      else { setDateTo(ds); setPickEnd(false); setTimeout(() => setOpenPanel(null), 180); }
     }
-    const t = setTimeout(async () => {
-      try {
-        const sb = createClient();
-        const { data } = await sb.from("profiles")
-          .select("id,slug,display_name,role,city")
-          .ilike("display_name", `%${query}%`)
-          .limit(4);
-        setResults(data ?? []);
-      } catch {
-        setCanSearch(false);
-        setResults([]);
-      }
-    }, 220);
-    return () => clearTimeout(t);
-  }, [query, canSearch]);
+  }
 
-  function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setOpen(false);
+  function handleOpenPanel(panel: "role" | "dates" | "city") {
+    if (barRef.current) {
+      const r = barRef.current.getBoundingClientRect();
+      setDropRect({ top: r.bottom + 10, left: r.left, width: r.width });
+    }
+    setOpenPanel((prev) => prev === panel ? null : panel);
+  }
+
+  function doSearch() {
     const p = new URLSearchParams();
-    if (query.trim()) p.set("q", query.trim());
+    if (role)     p.set("role", role);
+    if (city)     p.set("city", city);
+    if (dateFrom) p.set("from", dateFrom);
+    if (dateTo)   p.set("to", dateTo);
     router.push(`/search${p.toString() ? `?${p}` : ""}`);
   }
 
-  const roleLabel = (r: string) => ROLES.find((x) => x.id === r)?.label ?? r;
-  const showDropdown = open && query.trim().length > 0 && (roleSuggestions.length > 0 || results.length > 0);
+  const roleData = ROLES.find((r) => r.id === role);
+  let dateLabel = "Anytime";
+  if (dateFrom && dateTo) {
+    const a = new Date(dateFrom + "T00:00:00"), b = new Date(dateTo + "T00:00:00");
+    dateLabel = `${a.toLocaleDateString("en-PH", { month: "short", day: "numeric" })} – ${b.toLocaleDateString("en-PH", { month: "short", day: "numeric" })}`;
+  } else if (dateFrom) {
+    dateLabel = `From ${new Date(dateFrom + "T00:00:00").toLocaleDateString("en-PH", { month: "short", day: "numeric" })}`;
+  }
+
+  const pillBtn: React.CSSProperties = {
+    display: "flex", flexDirection: "column", alignItems: "flex-start",
+    padding: "14px 20px", background: "transparent", border: "none",
+    cursor: "pointer", width: "100%", textAlign: "left",
+  };
+  const pillLabel: React.CSSProperties = {
+    fontFamily: FT, fontSize: 10, fontWeight: 700, color: MUTED,
+    letterSpacing: "0.1em", textTransform: "uppercase",
+  };
+  const pillValue = (hasValue: boolean): React.CSSProperties => ({
+    fontFamily: FT, fontSize: 16, color: hasValue ? TEXT : MUTED, marginTop: 3,
+  });
+  const DAYS_CAL = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+  const navBtn: React.CSSProperties = {
+    width: 32, height: 32, borderRadius: 8, border: `1px solid ${BORDER}`,
+    background: "transparent", color: TEXT, cursor: "pointer",
+    display: "flex", alignItems: "center", justifyContent: "center",
+  };
+
+  const dropStyle: React.CSSProperties = {
+    position: "fixed",
+    top: dropRect.top,
+    left: dropRect.left,
+    width: dropRect.width,
+    zIndex: 9999,
+    background: "#111",
+    border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: 20,
+    boxShadow: "0 20px 60px rgba(0,0,0,0.85)",
+  };
 
   return (
-    <form onSubmit={submit} style={{ width: "100%", position: "relative" }}>
-      <div className="hero-search-pill" style={{
-        display: "flex", alignItems: "center", gap: 8,
-        background: "rgba(70,74,79,0.82)", border: "1px solid rgba(255,255,255,0.12)",
-        borderRadius: 999, padding: "7px 8px 7px 22px",
-        boxShadow: "0 18px 60px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.08)",
+    <div style={{ width: "100%", position: "relative" }} ref={barRef}>
+      {openPanel && (
+        <div onClick={() => setOpenPanel(null)} style={{ position: "fixed", inset: 0, zIndex: 9998 }} />
+      )}
+
+      {/* ── Search bar ── */}
+      <div style={{
+        background: "rgba(20,20,24,0.96)", border: "1px solid rgba(255,255,255,0.13)",
+        borderRadius: 20,
+        boxShadow: "0 18px 60px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06)",
       }}>
-        <Search size={17} style={{ color: MUTED, flexShrink: 0 }} />
-        <input
-          ref={inputRef}
-          type="text"
-          placeholder="Role, name, city"
-          value={query}
-          onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
-          onFocus={() => setOpen(true)}
-          onBlur={() => setTimeout(() => setOpen(false), 160)}
-          style={{
-            flex: 1, background: "none", border: "none", outline: "none",
-            color: TEXT, fontFamily: FT, fontSize: "clamp(16px,2vw,17px)",
-            padding: "10px 4px", minWidth: 0,
-          }}
-        />
-        {query && (
-          <button type="button" onClick={() => { setQuery(""); setResults([]); setRoleSuggestions([]); inputRef.current?.focus(); }}
-            style={{ background: "none", border: "none", color: MUTED, cursor: "pointer", padding: "0 6px", flexShrink: 0 }}>
-            <X size={14} />
-          </button>
-        )}
-        <button type="submit"
-          className="hero-search-submit transition-all hover:opacity-90 active:scale-[0.98]"
-          style={{
-            background: AMBER, color: "#000", border: "none", borderRadius: 999,
-            minHeight: 42, padding: "0 clamp(22px,3.5vw,34px)",
-            fontFamily: FT, fontWeight: 700, fontSize: "clamp(13px,1.5vw,15px)",
-            flexShrink: 0, cursor: "pointer", whiteSpace: "nowrap",
-            boxShadow: "0 1px 0 rgba(255,255,255,0.35) inset",
-          }}>
-          <span>Find</span>
+        {/* Role pill */}
+        <button
+          onClick={() => handleOpenPanel("role")}
+          style={{ ...pillBtn, borderBottom: `1px solid ${BORDER}`, background: openPanel === "role" ? "rgba(255,255,255,0.03)" : "transparent" }}>
+          <span style={pillLabel}>Role</span>
+          <span style={pillValue(!!role)}>
+            {roleData ? `${roleData.icon} ${roleData.label}` : "Any role"}
+          </span>
         </button>
+
+        {/* Dates pill */}
+        <button
+          onClick={() => handleOpenPanel("dates")}
+          style={{ ...pillBtn, borderBottom: `1px solid ${BORDER}`, background: openPanel === "dates" ? "rgba(255,255,255,0.03)" : "transparent" }}>
+          <span style={pillLabel}>Project dates</span>
+          <span style={pillValue(!!(dateFrom || dateTo))}>{dateLabel}</span>
+        </button>
+
+        {/* City + Find */}
+        <div style={{ display: "flex", alignItems: "stretch" }}>
+          <button
+            onClick={() => handleOpenPanel("city")}
+            style={{ ...pillBtn, flex: 1, background: openPanel === "city" ? "rgba(255,255,255,0.03)" : "transparent" }}>
+            <span style={pillLabel}>City</span>
+            <span style={pillValue(!!city)}>{city || "Anywhere"}</span>
+          </button>
+          <div style={{ padding: "12px 12px 12px 0", display: "flex", alignItems: "center" }}>
+            <button onClick={doSearch}
+              className="transition-all hover:opacity-90 active:scale-[0.97]"
+              style={{
+                height: 52, padding: "0 clamp(20px,3vw,32px)", borderRadius: 14,
+                background: AMBER, color: "#000", border: "none",
+                fontFamily: FT, fontWeight: 700, fontSize: 15,
+                cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0,
+                display: "flex", alignItems: "center", gap: 6,
+                boxShadow: "0 1px 0 rgba(255,255,255,0.3) inset",
+              }}>
+              Find crew <ArrowRight size={14} />
+            </button>
+          </div>
+        </div>
       </div>
 
-      {showDropdown && (
-        <div style={{
-          position: "absolute", top: "calc(100% + 10px)", left: 0, right: 0,
-          background: "#101010", border: "1px solid rgba(255,255,255,0.1)",
-          borderRadius: 20, overflow: "hidden", zIndex: 100,
-          boxShadow: "0 20px 60px rgba(0,0,0,0.7)",
-        }}>
-          {/* Role suggestions */}
-          {roleSuggestions.length > 0 && (
-            <>
-              <div style={{ padding: "10px 20px 6px" }}>
-                <span style={{ fontFamily: FT, fontSize: 11, fontWeight: 600, color: MUTED, letterSpacing: "0.06em", textTransform: "uppercase" }}>Roles</span>
-              </div>
-              {roleSuggestions.map((r, i) => (
-                <button key={r.id} type="button"
-                  onClick={() => { setOpen(false); router.push(`/search?role=${r.id}`); }}
-                  style={{
-                    width: "100%", display: "flex", alignItems: "center", gap: 14, padding: "11px 20px",
-                    background: "transparent", border: "none", cursor: "pointer", textAlign: "left",
-                    borderBottom: i < roleSuggestions.length - 1 || results.length > 0 ? `1px solid ${DIVIDER}` : "none",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "#181818")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, flexShrink: 0, background: "rgba(255,179,0,0.08)", border: "1px solid rgba(255,179,0,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ fontSize: 15 }}>🎬</span>
-                  </div>
-                  <div style={{ minWidth: 0 }}>
-                    <p style={{ fontFamily: FD, fontWeight: 600, fontSize: 14, color: TEXT }}>{r.label}</p>
-                    <p style={{ fontFamily: FT, fontSize: 12, color: MUTED, marginTop: 1 }}>{r.department}</p>
-                  </div>
-                </button>
-              ))}
-            </>
-          )}
-
-          {/* People suggestions */}
-          {results.length > 0 && (
-            <>
-              <div style={{ padding: "10px 20px 6px", borderTop: roleSuggestions.length > 0 ? `1px solid ${BORDER}` : "none" }}>
-                <span style={{ fontFamily: FT, fontSize: 11, fontWeight: 600, color: MUTED, letterSpacing: "0.06em", textTransform: "uppercase" }}>People</span>
-              </div>
-              {results.map((p, i) => (
-                <Link key={p.id} href={`/crew/${p.slug}`}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 14, padding: "12px 20px",
-                    borderBottom: i < results.length - 1 ? `1px solid ${DIVIDER}` : "none",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "#181818")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, flexShrink: 0, background: "#000", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: FD, fontWeight: 700, fontSize: 13, color: AMBER }}>
-                    {p.display_name.slice(0, 2).toUpperCase()}
-                  </div>
-                  <div style={{ minWidth: 0 }}>
-                    <p style={{ fontFamily: FD, fontWeight: 600, fontSize: 14, color: TEXT, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.display_name}</p>
-                    <p style={{ fontFamily: FT, fontSize: 12, color: MUTED, marginTop: 1 }}>{roleLabel(p.role)} · {p.city}</p>
-                  </div>
-                </Link>
-              ))}
-            </>
-          )}
-
-          <Link href={`/search?q=${encodeURIComponent(query)}`}
-            style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 20px", borderTop: `1px solid ${DIVIDER}`, background: "rgba(255,179,0,0.04)" }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,179,0,0.09)")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,179,0,0.04)")}>
-            <span style={{ fontFamily: FT, fontSize: 14, color: AMBER }}>See all results for &ldquo;{query}&rdquo;</span>
-            <ArrowRight size={14} style={{ color: AMBER }} />
-          </Link>
+      {/* ── Role dropdown (fixed) ── */}
+      {openPanel === "role" && (
+        <div style={{ ...dropStyle, maxHeight: 360, overflowY: "auto" }}>
+          <button onClick={() => { setRole(""); setOpenPanel(null); }}
+            style={{ width: "100%", padding: "13px 20px", background: !role ? "rgba(255,204,0,0.07)" : "transparent", border: "none", borderBottom: `1px solid ${BORDER}`, cursor: "pointer", textAlign: "left" }}>
+            <span style={{ fontFamily: FT, fontSize: 14, color: !role ? AMBER : TEXT }}>All roles</span>
+          </button>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
+            {ROLES.map((r, i) => (
+              <button key={r.id}
+                onClick={() => { setRole(r.id); setOpenPanel(null); }}
+                style={{
+                  padding: "12px 16px", background: role === r.id ? "rgba(255,204,0,0.07)" : "transparent",
+                  border: "none",
+                  borderBottom: i < ROLES.length - 2 ? `1px solid ${DIVIDER}` : "none",
+                  borderRight: i % 2 === 0 ? `1px solid ${DIVIDER}` : "none",
+                  cursor: "pointer", textAlign: "left",
+                  display: "flex", alignItems: "center", gap: 8,
+                }}>
+                <span style={{ fontSize: 15 }}>{r.icon}</span>
+                <span style={{ fontFamily: FT, fontSize: 13, color: role === r.id ? AMBER : TEXT }}>{r.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
-    </form>
+
+      {/* ── Dates dropdown (fixed) ── */}
+      {openPanel === "dates" && (
+        <div style={{ ...dropStyle, padding: "20px", maxHeight: "80dvh", overflowY: "auto" }}>
+          <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, marginBottom: 16, textAlign: "center" }}>
+            {!dateFrom ? "Select start date" : !dateTo ? "Select end date" : dateLabel}
+          </p>
+
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+            <button style={navBtn} onClick={() => setCalMonth(new Date(calY, calM - 1, 1))}><ChevronLeft size={16} /></button>
+            <span style={{ fontFamily: FD, fontWeight: 600, fontSize: 15, color: TEXT }}>
+              {calMonth.toLocaleDateString("en-PH", { month: "long", year: "numeric" })}
+            </span>
+            <button style={navBtn} onClick={() => setCalMonth(new Date(calY, calM + 1, 1))}><ChevronRight size={16} /></button>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2, marginBottom: 2 }}>
+            {DAYS_CAL.map((d) => (
+              <div key={d} style={{ textAlign: "center", fontFamily: FT, fontSize: 10, color: MUTED, paddingBottom: 6, fontWeight: 600 }}>{d}</div>
+            ))}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
+            {calCells.map((day, i) => {
+              if (!day) return <div key={i} />;
+              const ds      = `${calY}-${String(calM + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+              const isPast  = ds < todayStr;
+              const isStart = ds === dateFrom;
+              const isEnd   = ds === dateTo;
+              const inRange = !!(dateFrom && dateTo && ds > dateFrom && ds < dateTo);
+              return (
+                <button key={i}
+                  onClick={() => !isPast && handleDateClick(ds)}
+                  style={{
+                    minHeight: 36, borderRadius: 8, fontFamily: FT, fontSize: 13,
+                    fontWeight: isStart || isEnd ? 700 : 400,
+                    border: "1px solid transparent",
+                    background: isStart || isEnd ? AMBER : inRange ? "rgba(255,204,0,0.12)" : "rgba(255,255,255,0.03)",
+                    color: isPast ? "rgba(255,255,255,0.15)" : isStart || isEnd ? "#000" : TEXT,
+                    cursor: isPast ? "default" : "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    transition: "all 0.1s",
+                  }}>
+                  {day}
+                </button>
+              );
+            })}
+          </div>
+
+          <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+            {(dateFrom || dateTo) && (
+              <button onClick={() => { setDateFrom(null); setDateTo(null); setPickEnd(false); }}
+                style={{ flex: 1, padding: "10px", borderRadius: 10, border: `1px solid ${BORDER}`, background: "transparent", color: MUTED, fontFamily: FT, fontSize: 13, cursor: "pointer" }}>
+                Clear
+              </button>
+            )}
+            <button onClick={() => setOpenPanel(null)}
+              style={{ flex: 1, padding: "10px", borderRadius: 10, border: "none", background: AMBER, color: "#000", fontFamily: FT, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+              Done
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── City dropdown (fixed) ── */}
+      {openPanel === "city" && (
+        <div style={{ ...dropStyle, maxHeight: 320, overflowY: "auto" }}>
+          <button onClick={() => { setCity(""); setOpenPanel(null); }}
+            style={{ width: "100%", padding: "14px 20px", background: !city ? "rgba(255,204,0,0.07)" : "transparent", border: "none", borderBottom: `1px solid ${BORDER}`, cursor: "pointer", textAlign: "left" }}>
+            <span style={{ fontFamily: FT, fontSize: 14, color: !city ? AMBER : TEXT }}>Anywhere in the Philippines</span>
+          </button>
+          {PH_LOCATIONS.map((loc, i) => (
+            <button key={loc} onClick={() => { setCity(loc); setOpenPanel(null); }}
+              style={{ width: "100%", padding: "12px 20px", background: city === loc ? "rgba(255,204,0,0.07)" : "transparent", border: "none", borderBottom: i < PH_LOCATIONS.length - 1 ? `1px solid rgba(255,255,255,0.04)` : "none", cursor: "pointer", textAlign: "left" }}>
+              <span style={{ fontFamily: FT, fontSize: 14, color: city === loc ? AMBER : TEXT }}>{loc}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -522,6 +612,72 @@ function ProfileCard({ p, exiting, cardIdx }: { p: Profile; exiting: "left" | "r
         </Link>
       </div>
     </div>
+  );
+}
+
+const HOW_STEPS = [
+  { num: "01", icon: "🔍", title: "Search by role and date", desc: "Pick a role, set your project dates, and choose a city. CineVerse shows crew who are actually available." },
+  { num: "02", icon: "🃏", title: "Browse profile cards",    desc: "See rate, experience, specializations, and availability at a glance. No cold DMs into the void." },
+  { num: "03", icon: "💬", title: "Connect and chat",        desc: "Send a connection request with your project details. Once the crew accepts, you chat directly inside the app." },
+];
+
+/* ─── How It Works modal ─── */
+function HowItWorksModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  if (!open) return null;
+  return (
+    <>
+      <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.82)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)" }} />
+      <div style={{
+        position: "fixed", left: "50%", top: "50%", transform: "translate(-50%,-50%)",
+        zIndex: 501, width: "min(620px, calc(100vw - 32px))", maxHeight: "88dvh",
+        overflowY: "auto", background: "#0c0c10",
+        border: "1px solid rgba(255,255,255,0.1)", borderRadius: 24,
+        padding: "clamp(24px,4vw,40px)",
+        boxShadow: "0 40px 120px rgba(0,0,0,0.9)",
+      }}>
+        <button onClick={onClose} style={{
+          position: "absolute", top: 16, right: 16, width: 32, height: 32,
+          borderRadius: 8, border: `1px solid ${BORDER}`,
+          background: "rgba(255,255,255,0.05)", color: MUTED,
+          display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
+        }}><X size={15} /></button>
+
+        <p style={{ fontFamily: FT, fontSize: 11, fontWeight: 700, color: AMBER, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>
+          How CineVerse works
+        </p>
+        <h2 style={{ fontFamily: FD, fontWeight: 700, fontSize: "clamp(1.3rem,3vw,1.7rem)", color: TEXT, letterSpacing: "-0.025em", lineHeight: 1.1, marginBottom: 28 }}>
+          From search to set. <span style={{ color: AMBER }}>Fast.</span>
+        </h2>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {HOW_STEPS.map((s) => (
+            <div key={s.num} style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 16, padding: "clamp(16px,3vw,22px)", display: "flex", gap: 16, alignItems: "flex-start" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0, paddingTop: 2 }}>
+                <span style={{ fontFamily: FD, fontSize: 10, fontWeight: 700, color: AMBER, letterSpacing: "0.1em" }}>{s.num}</span>
+                <span style={{ fontSize: 18 }}>{s.icon}</span>
+              </div>
+              <div>
+                <p style={{ fontFamily: FD, fontWeight: 700, fontSize: 15, color: TEXT, marginBottom: 5 }}>{s.title}</p>
+                <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, lineHeight: 1.65 }}>{s.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ marginTop: 16, padding: "clamp(14px,3vw,20px)", borderRadius: 16, background: "linear-gradient(135deg, rgba(255,204,0,0.07) 0%, rgba(255,204,0,0.02) 100%)", border: "1px solid rgba(255,204,0,0.15)", display: "flex", gap: 14, alignItems: "center" }}>
+          <Calendar size={20} style={{ color: AMBER, flexShrink: 0 }} />
+          <div>
+            <p style={{ fontFamily: FD, fontWeight: 700, fontSize: 14, color: TEXT, marginBottom: 3 }}>Crew set their own availability</p>
+            <p style={{ fontFamily: FT, fontSize: 12, color: MUTED, lineHeight: 1.6 }}>Search by date and only see crew who are free for your shoot window.</p>
+          </div>
+        </div>
+
+        <Link href="/search" onClick={onClose} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 16, padding: "13px", borderRadius: 12, background: AMBER, color: "#000", fontFamily: FT, fontWeight: 700, fontSize: 14, textDecoration: "none" }}
+          className="transition-all hover:opacity-90 active:scale-[0.98]">
+          Find available crew <ArrowRight size={14} />
+        </Link>
+      </div>
+    </>
   );
 }
 
@@ -776,85 +932,104 @@ function CrewBrowser() {
 
 /* ─── Page ─── */
 export default function HomePage() {
+  const [howOpen, setHowOpen] = useState(false);
+
   return (
     <div className="mobile-nav-pad" style={{ background: BG, minHeight: "100dvh", overflowX: "hidden" }}>
       <Nav />
+      <HowItWorksModal open={howOpen} onClose={() => setHowOpen(false)} />
 
       {/* ── HERO ── */}
       <section style={{
         position: "relative", display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center", textAlign: "center",
-        minHeight: "100dvh", overflow: "hidden",
-        padding: "clamp(96px,15vw,168px) clamp(16px,5vw,60px) clamp(48px,8vw,88px)",
+        minHeight: "100dvh",
+        padding: "clamp(80px,12vw,140px) clamp(16px,5vw,48px) clamp(56px,8vw,80px)",
+        background: "linear-gradient(160deg, #08080d 0%, #0c0c14 45%, #060609 100%)",
       }}>
-        {/* Ambient glow */}
-        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: "8%", pointerEvents: "none" }}>
-          <div style={{ width: "min(900px,100vw)", height: 700, background: "radial-gradient(ellipse 55% 45% at 50% 35%, rgba(255,255,255,0.055) 0%, rgba(255,204,0,0.045) 42%, transparent 72%)" }} />
+        {/* Subtle amber ambient glow */}
+        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+          <div style={{ width: "min(800px,100vw)", height: 600, background: "radial-gradient(ellipse 60% 50% at 50% 42%, rgba(255,204,0,0.055) 0%, rgba(255,120,0,0.025) 50%, transparent 72%)" }} />
         </div>
 
-        {/* Badge */}
-        <div className="anim-up" style={{ marginBottom: 32 }}>
-          <span style={{
-            display: "inline-flex", alignItems: "center", gap: 8,
-            fontFamily: FT, fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
-            background: "rgba(255,179,0,0.09)", color: AMBER, padding: "6px 18px", borderRadius: 20, border: "1px solid rgba(255,179,0,0.18)",
+        {/* Content */}
+        <div style={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
+
+          {/* Badge */}
+          <div className="anim-up" style={{ marginBottom: 20 }}>
+            <span style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              fontFamily: FT, fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
+              background: "rgba(255,179,0,0.08)", color: AMBER,
+              padding: "5px 16px", borderRadius: 20, border: "1px solid rgba(255,179,0,0.18)",
+            }}>
+              <span style={{ width: 5, height: 5, borderRadius: "50%", background: AMBER, display: "inline-block" }} />
+              Philippines Film Crew Marketplace
+            </span>
+          </div>
+
+          {/* Headline */}
+          <h1 className="hero-title anim-up d1 text-balance" style={{
+            fontFamily: FD, fontWeight: 700, color: TEXT,
+            letterSpacing: "-0.038em", lineHeight: 1.05,
+            marginBottom: 36, maxWidth: 680,
           }}>
-            <span style={{ width: 5, height: 5, borderRadius: "50%", background: AMBER, display: "inline-block" }} />
-            Film crew on demand
-          </span>
-        </div>
+            Find the right crew<br />
+            <span style={{ color: AMBER, textShadow: "0 0 80px rgba(255,204,0,0.2)" }}>for your next project.</span>
+          </h1>
 
-        {/* Headline */}
-        <h1 className="hero-title anim-up d1 text-balance" style={{
-          fontFamily: FD, fontWeight: 700, color: TEXT,
-          letterSpacing: "-0.038em", lineHeight: 1.04,
-          marginBottom: 24, maxWidth: 800,
-        }}>
-          <span className="hidden sm:inline">Find film crew. </span>
-          <span className="sm:hidden">Find film<br />crew.<br /></span>
-          <span style={{ color: AMBER, textShadow: "0 0 80px rgba(255,204,0,0.2)" }}>Fast.</span>
-        </h1>
+          {/* Search bar */}
+          <div className="anim-up d2" style={{ width: "100%", maxWidth: "min(600px,calc(100vw - 32px))", marginBottom: 28 }}>
+            <BookingSearch />
+          </div>
 
-        {/* Subtitle */}
-        <p className="anim-up d2" style={{
-          fontFamily: FT, fontSize: "clamp(15px,2vw,18px)",
-          color: MUTED, lineHeight: 1.7, marginBottom: 48,
-          maxWidth: "min(500px,90vw)",
-        }}>
-          Search roles. Compare cards. Connect when ready.
-        </p>
+          {/* Tagline */}
+          <p className="anim-up d3" style={{
+            fontFamily: FT, fontSize: "clamp(13px,1.6vw,15px)",
+            color: "rgba(255,255,255,0.4)", lineHeight: 1.6,
+            marginBottom: 32, maxWidth: "min(400px,90vw)",
+          }}>
+            Match by role, availability, and location.
+          </p>
 
-        {/* Search */}
-        <div className="hero-search-wrap anim-up d3" style={{ width: "100%", maxWidth: "min(640px,92vw)", marginBottom: 28, position: "relative", zIndex: 10 }}>
-          <HeroSearch />
-        </div>
+          {/* CTAs */}
+          <div className="anim-up d3" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
+            <Link href="/auth?intent=join"
+              style={{
+                fontFamily: FT, fontSize: 14, fontWeight: 700,
+                color: "#000", background: AMBER,
+                minHeight: 42, padding: "0 22px", borderRadius: 999,
+                display: "flex", alignItems: "center", gap: 6,
+                boxShadow: "0 1px 0 rgba(255,255,255,0.35) inset",
+              }}
+              className="transition-all hover:opacity-90 active:scale-[0.98]">
+              Join as crew <ArrowRight size={13} />
+            </Link>
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 18, flexWrap: "wrap" }}>
-          <Link href="/auth?intent=join"
-            style={{
-              fontFamily: FT, fontSize: 14, fontWeight: 700,
-              color: "#000", background: AMBER,
-              minHeight: 40, padding: "0 22px", borderRadius: 999,
-              display: "flex", alignItems: "center", gap: 6,
-              boxShadow: "0 1px 0 rgba(255,255,255,0.35) inset",
-            }}
-            className="transition-all hover:opacity-90 active:scale-[0.98]">
-            Join <ArrowRight size={13} />
-          </Link>
-          <Link href="/about"
-            style={{
-              fontFamily: FT, fontSize: 14, fontWeight: 700,
-              color: AMBER, minHeight: 40, padding: "0 18px",
-              borderRadius: 999, border: `1px solid ${AMBER}`,
-              background: "rgba(255,204,0,0.06)",
-              display: "flex", alignItems: "center", gap: 6,
-              boxShadow: "0 0 0 1px rgba(255,204,0,0.08) inset",
-            }}
-            className="transition-all hover:bg-yellow-400/10 active:scale-[0.98]">
-            Why built <ArrowRight size={13} />
-          </Link>
+            {/* How it works — pulsing indicator */}
+            <button
+              onClick={() => setHowOpen(true)}
+              style={{
+                fontFamily: FT, fontSize: 14, color: TEXT,
+                minHeight: 42, padding: "0 18px", borderRadius: 999,
+                border: "1px solid rgba(255,255,255,0.18)",
+                background: "rgba(255,255,255,0.05)",
+                display: "flex", alignItems: "center", gap: 8,
+                cursor: "pointer",
+              }}
+              className="transition-all hover:bg-white/10 active:scale-[0.98]">
+              {/* Ping indicator */}
+              <span style={{ position: "relative", display: "inline-flex", width: 8, height: 8, flexShrink: 0 }}>
+                <span className="animate-ping" style={{ position: "absolute", inset: 0, borderRadius: "50%", background: AMBER, opacity: 0.6 }} />
+                <span style={{ position: "relative", width: 8, height: 8, borderRadius: "50%", background: AMBER, display: "inline-block" }} />
+              </span>
+              How it works
+            </button>
+          </div>
         </div>
       </section>
+
+      <CrewBrowser />
     </div>
   );
 }
