@@ -12,6 +12,13 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ---
 
+## [0.16.2-beta.1] — 2026-05-29
+
+### Changed
+- **Hero section** — restored `bg.mp4` video background scoped to section 1 only with dark gradient overlay; search widget moved to its own section 2 ("Who do you need on set?") on a solid dark background so the video no longer bleeds into other sections.
+
+---
+
 ## [0.16.1-beta.1] — 2026-05-29
 
 ### Added
