@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ROLES, AVAILABILITY, EXPERIENCE_LEVELS, PH_LOCATIONS } from "@/lib/constants";
 import {
-  MapPin, ArrowRight,
+  MapPin, ArrowRight, Search,
   Clapperboard, X, RotateCcw, Users, Menu, ChevronLeft, ChevronRight, Calendar,
 } from "lucide-react";
 
@@ -214,7 +214,7 @@ function Nav() {
   );
 }
 
-/* ─── Booking Search (Airbnb-style 3-pill) ─── */
+/* ─── Booking Search (Airbnb-style horizontal pill bar) ─── */
 function BookingSearch() {
   const router = useRouter();
 
@@ -222,7 +222,7 @@ function BookingSearch() {
   const [city,      setCity]      = useState("");
   const [dateFrom,  setDateFrom]  = useState<string | null>(null);
   const [dateTo,    setDateTo]    = useState<string | null>(null);
-  const [openPanel, setOpenPanel] = useState<"role" | "dates" | "city" | null>(null);
+  const [openPanel, setOpenPanel] = useState<"location" | "dates" | "crew" | null>(null);
   const [calMonth,  setCalMonth]  = useState(() => { const d = new Date(); d.setDate(1); return d; });
   const [pickEnd,   setPickEnd]   = useState(false);
   const [dropRect,  setDropRect]  = useState<{ top: number; left: number; width: number }>({ top: 0, left: 0, width: 0 });
@@ -249,10 +249,10 @@ function BookingSearch() {
     }
   }
 
-  function handleOpenPanel(panel: "role" | "dates" | "city") {
+  function handleOpenPanel(panel: "location" | "dates" | "crew") {
     if (barRef.current) {
       const r = barRef.current.getBoundingClientRect();
-      setDropRect({ top: r.bottom + 10, left: r.left, width: r.width });
+      setDropRect({ top: r.bottom + 8, left: r.left, width: r.width });
     }
     setOpenPanel((prev) => prev === panel ? null : panel);
   }
@@ -267,7 +267,8 @@ function BookingSearch() {
   }
 
   const roleData = ROLES.find((r) => r.id === role);
-  let dateLabel = "Anytime";
+
+  let dateLabel = "Add dates";
   if (dateFrom && dateTo) {
     const a = new Date(dateFrom + "T00:00:00"), b = new Date(dateTo + "T00:00:00");
     dateLabel = `${a.toLocaleDateString("en-PH", { month: "short", day: "numeric" })} – ${b.toLocaleDateString("en-PH", { month: "short", day: "numeric" })}`;
@@ -275,25 +276,12 @@ function BookingSearch() {
     dateLabel = `From ${new Date(dateFrom + "T00:00:00").toLocaleDateString("en-PH", { month: "short", day: "numeric" })}`;
   }
 
-  const pillBtn: React.CSSProperties = {
-    display: "flex", flexDirection: "column", alignItems: "flex-start",
-    padding: "14px 20px", background: "transparent", border: "none",
-    cursor: "pointer", width: "100%", textAlign: "left",
-  };
-  const pillLabel: React.CSSProperties = {
-    fontFamily: FT, fontSize: 10, fontWeight: 700, color: MUTED,
-    letterSpacing: "0.1em", textTransform: "uppercase",
-  };
-  const pillValue = (hasValue: boolean): React.CSSProperties => ({
-    fontFamily: FT, fontSize: 16, color: hasValue ? TEXT : MUTED, marginTop: 3,
-  });
   const DAYS_CAL = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
   const navBtn: React.CSSProperties = {
     width: 32, height: 32, borderRadius: 8, border: `1px solid ${BORDER}`,
     background: "transparent", color: TEXT, cursor: "pointer",
     display: "flex", alignItems: "center", justifyContent: "center",
   };
-
   const dropStyle: React.CSSProperties = {
     position: "fixed",
     top: dropRect.top,
@@ -302,9 +290,25 @@ function BookingSearch() {
     zIndex: 9999,
     background: "#111",
     border: "1px solid rgba(255,255,255,0.1)",
-    borderRadius: 20,
+    borderRadius: 24,
     boxShadow: "0 20px 60px rgba(0,0,0,0.85)",
   };
+
+  const pill = (id: "location" | "dates" | "crew"): React.CSSProperties => ({
+    flex: "1 1 0", minWidth: 0,
+    display: "flex", flexDirection: "column", alignItems: "flex-start",
+    padding: "clamp(8px,1.5vw,12px) clamp(12px,2vw,20px)",
+    borderRadius: 999, border: "none", cursor: "pointer",
+    background: openPanel === id ? "rgba(255,255,255,0.09)" : "transparent",
+    boxShadow: openPanel === id ? "0 2px 12px rgba(0,0,0,0.45)" : "none",
+    transition: "background 0.15s, box-shadow 0.15s",
+    textAlign: "left",
+  });
+
+  const divider = (left: "location" | "dates", right: "dates" | "crew") =>
+    openPanel === left || openPanel === right ? null : (
+      <div style={{ width: 1, height: 28, background: "rgba(255,255,255,0.1)", flexShrink: 0 }} />
+    );
 
   return (
     <div style={{ width: "100%", position: "relative" }} ref={barRef}>
@@ -312,85 +316,80 @@ function BookingSearch() {
         <div onClick={() => setOpenPanel(null)} style={{ position: "fixed", inset: 0, zIndex: 9998, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)" }} />
       )}
 
-      {/* ── Search bar ── */}
+      {/* ── Horizontal pill bar ── */}
       <div style={{
-        background: "rgba(20,20,24,0.96)", border: "1px solid rgba(255,255,255,0.13)",
-        borderRadius: 20,
+        display: "flex", alignItems: "center",
+        background: "rgba(20,20,24,0.96)",
+        border: "1px solid rgba(255,255,255,0.13)",
+        borderRadius: 999, padding: "5px",
         boxShadow: "0 18px 60px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06)",
       }}>
-        {/* Role pill */}
-        <button
-          onClick={() => handleOpenPanel("role")}
-          style={{ ...pillBtn, borderBottom: `1px solid ${BORDER}`, background: openPanel === "role" ? "rgba(255,255,255,0.03)" : "transparent" }}>
-          <span style={pillLabel}>Role</span>
-          <span style={pillValue(!!role)}>
+
+        {/* Location */}
+        <button onClick={() => handleOpenPanel("location")} style={pill("location")}>
+          <span style={{ fontFamily: FT, fontSize: 10, fontWeight: 700, color: TEXT, letterSpacing: "0.08em", textTransform: "uppercase" }}>Location</span>
+          <span style={{ fontFamily: FT, fontSize: "clamp(12px,1.8vw,14px)", color: city ? TEXT : MUTED, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>
+            {city || "Anywhere"}
+          </span>
+        </button>
+
+        {divider("location", "dates")}
+
+        {/* Availability */}
+        <button onClick={() => handleOpenPanel("dates")} style={pill("dates")}>
+          <span style={{ fontFamily: FT, fontSize: 10, fontWeight: 700, color: TEXT, letterSpacing: "0.08em", textTransform: "uppercase" }}>Availability</span>
+          <span style={{ fontFamily: FT, fontSize: "clamp(12px,1.8vw,14px)", color: (dateFrom || dateTo) ? TEXT : MUTED, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>
+            {dateLabel}
+          </span>
+        </button>
+
+        {divider("dates", "crew")}
+
+        {/* Crew */}
+        <button onClick={() => handleOpenPanel("crew")} style={pill("crew")}>
+          <span style={{ fontFamily: FT, fontSize: 10, fontWeight: 700, color: TEXT, letterSpacing: "0.08em", textTransform: "uppercase" }}>Crew</span>
+          <span style={{ fontFamily: FT, fontSize: "clamp(12px,1.8vw,14px)", color: role ? TEXT : MUTED, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>
             {roleData ? `${roleData.icon} ${roleData.label}` : "Any role"}
           </span>
         </button>
 
-        {/* Dates pill */}
-        <button
-          onClick={() => handleOpenPanel("dates")}
-          style={{ ...pillBtn, borderBottom: `1px solid ${BORDER}`, background: openPanel === "dates" ? "rgba(255,255,255,0.03)" : "transparent" }}>
-          <span style={pillLabel}>Project dates</span>
-          <span style={pillValue(!!(dateFrom || dateTo))}>{dateLabel}</span>
-        </button>
-
-        {/* City + Find */}
-        <div style={{ display: "flex", alignItems: "stretch" }}>
-          <button
-            onClick={() => handleOpenPanel("city")}
-            style={{ ...pillBtn, flex: 1, background: openPanel === "city" ? "rgba(255,255,255,0.03)" : "transparent" }}>
-            <span style={pillLabel}>City</span>
-            <span style={pillValue(!!city)}>{city || "Anywhere"}</span>
+        {/* Search button */}
+        <div style={{ flexShrink: 0, paddingLeft: 4 }}>
+          <button onClick={doSearch}
+            className="transition-all hover:opacity-90 active:scale-[0.97]"
+            style={{
+              height: 46, padding: "0 clamp(14px,2.5vw,22px)", borderRadius: 999,
+              background: AMBER, color: "#000", border: "none",
+              fontFamily: FT, fontWeight: 700, fontSize: "clamp(12px,1.6vw,14px)",
+              cursor: "pointer", whiteSpace: "nowrap",
+              display: "flex", alignItems: "center", gap: 6,
+              boxShadow: "0 1px 0 rgba(255,255,255,0.3) inset",
+            }}>
+            <Search size={14} strokeWidth={2.5} />
+            <span className="hidden sm:inline">Find crew</span>
           </button>
-          <div style={{ padding: "12px 12px 12px 0", display: "flex", alignItems: "center" }}>
-            <button onClick={doSearch}
-              className="transition-all hover:opacity-90 active:scale-[0.97]"
-              style={{
-                height: 52, padding: "0 clamp(20px,3vw,32px)", borderRadius: 14,
-                background: AMBER, color: "#000", border: "none",
-                fontFamily: FT, fontWeight: 700, fontSize: 15,
-                cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0,
-                display: "flex", alignItems: "center", gap: 6,
-                boxShadow: "0 1px 0 rgba(255,255,255,0.3) inset",
-              }}>
-              Find crew <ArrowRight size={14} />
-            </button>
-          </div>
         </div>
       </div>
 
-      {/* ── Role dropdown (fixed) ── */}
-      {openPanel === "role" && (
-        <div style={{ ...dropStyle, maxHeight: 360, overflowY: "auto" }}>
-          <button onClick={() => { setRole(""); setOpenPanel(null); }}
-            style={{ width: "100%", padding: "13px 20px", background: !role ? "rgba(255,204,0,0.07)" : "transparent", border: "none", borderBottom: `1px solid ${BORDER}`, cursor: "pointer", textAlign: "left" }}>
-            <span style={{ fontFamily: FT, fontSize: 14, color: !role ? AMBER : TEXT }}>All roles</span>
+      {/* ── Location dropdown ── */}
+      {openPanel === "location" && (
+        <div style={{ ...dropStyle, maxHeight: 320, overflowY: "auto" }}>
+          <button onClick={() => { setCity(""); setOpenPanel(null); }}
+            style={{ width: "100%", padding: "14px 24px", background: !city ? "rgba(255,204,0,0.07)" : "transparent", border: "none", borderBottom: `1px solid ${BORDER}`, cursor: "pointer", textAlign: "left" }}>
+            <span style={{ fontFamily: FT, fontSize: 14, color: !city ? AMBER : TEXT }}>Anywhere in the Philippines</span>
           </button>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
-            {ROLES.map((r, i) => (
-              <button key={r.id}
-                onClick={() => { setRole(r.id); setOpenPanel(null); }}
-                style={{
-                  padding: "12px 16px", background: role === r.id ? "rgba(255,204,0,0.07)" : "transparent",
-                  border: "none",
-                  borderBottom: i < ROLES.length - 2 ? `1px solid ${DIVIDER}` : "none",
-                  borderRight: i % 2 === 0 ? `1px solid ${DIVIDER}` : "none",
-                  cursor: "pointer", textAlign: "left",
-                  display: "flex", alignItems: "center", gap: 8,
-                }}>
-                <span style={{ fontSize: 15 }}>{r.icon}</span>
-                <span style={{ fontFamily: FT, fontSize: 13, color: role === r.id ? AMBER : TEXT }}>{r.label}</span>
-              </button>
-            ))}
-          </div>
+          {PH_LOCATIONS.map((loc, i) => (
+            <button key={loc} onClick={() => { setCity(loc); setOpenPanel(null); }}
+              style={{ width: "100%", padding: "12px 24px", background: city === loc ? "rgba(255,204,0,0.07)" : "transparent", border: "none", borderBottom: i < PH_LOCATIONS.length - 1 ? `1px solid rgba(255,255,255,0.04)` : "none", cursor: "pointer", textAlign: "left" }}>
+              <span style={{ fontFamily: FT, fontSize: 14, color: city === loc ? AMBER : TEXT }}>{loc}</span>
+            </button>
+          ))}
         </div>
       )}
 
-      {/* ── Dates dropdown (fixed) ── */}
+      {/* ── Availability (dates) dropdown ── */}
       {openPanel === "dates" && (
-        <div style={{ ...dropStyle, padding: "20px", maxHeight: "80dvh", overflowY: "auto" }}>
+        <div style={{ ...dropStyle, padding: "24px", maxHeight: "80dvh", overflowY: "auto" }}>
           <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, marginBottom: 16, textAlign: "center" }}>
             {!dateFrom ? "Select start date" : !dateTo ? "Select end date" : dateLabel}
           </p>
@@ -450,19 +449,30 @@ function BookingSearch() {
         </div>
       )}
 
-      {/* ── City dropdown (fixed) ── */}
-      {openPanel === "city" && (
-        <div style={{ ...dropStyle, maxHeight: 320, overflowY: "auto" }}>
-          <button onClick={() => { setCity(""); setOpenPanel(null); }}
-            style={{ width: "100%", padding: "14px 20px", background: !city ? "rgba(255,204,0,0.07)" : "transparent", border: "none", borderBottom: `1px solid ${BORDER}`, cursor: "pointer", textAlign: "left" }}>
-            <span style={{ fontFamily: FT, fontSize: 14, color: !city ? AMBER : TEXT }}>Anywhere in the Philippines</span>
+      {/* ── Crew (role) dropdown ── */}
+      {openPanel === "crew" && (
+        <div style={{ ...dropStyle, maxHeight: 360, overflowY: "auto" }}>
+          <button onClick={() => { setRole(""); setOpenPanel(null); }}
+            style={{ width: "100%", padding: "13px 24px", background: !role ? "rgba(255,204,0,0.07)" : "transparent", border: "none", borderBottom: `1px solid ${BORDER}`, cursor: "pointer", textAlign: "left" }}>
+            <span style={{ fontFamily: FT, fontSize: 14, color: !role ? AMBER : TEXT }}>All roles</span>
           </button>
-          {PH_LOCATIONS.map((loc, i) => (
-            <button key={loc} onClick={() => { setCity(loc); setOpenPanel(null); }}
-              style={{ width: "100%", padding: "12px 20px", background: city === loc ? "rgba(255,204,0,0.07)" : "transparent", border: "none", borderBottom: i < PH_LOCATIONS.length - 1 ? `1px solid rgba(255,255,255,0.04)` : "none", cursor: "pointer", textAlign: "left" }}>
-              <span style={{ fontFamily: FT, fontSize: 14, color: city === loc ? AMBER : TEXT }}>{loc}</span>
-            </button>
-          ))}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
+            {ROLES.map((r, i) => (
+              <button key={r.id}
+                onClick={() => { setRole(r.id); setOpenPanel(null); }}
+                style={{
+                  padding: "12px 16px", background: role === r.id ? "rgba(255,204,0,0.07)" : "transparent",
+                  border: "none",
+                  borderBottom: i < ROLES.length - 2 ? `1px solid ${DIVIDER}` : "none",
+                  borderRight: i % 2 === 0 ? `1px solid ${DIVIDER}` : "none",
+                  cursor: "pointer", textAlign: "left",
+                  display: "flex", alignItems: "center", gap: 8,
+                }}>
+                <span style={{ fontSize: 15 }}>{r.icon}</span>
+                <span style={{ fontFamily: FT, fontSize: 13, color: role === r.id ? AMBER : TEXT }}>{r.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>

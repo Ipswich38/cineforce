@@ -12,6 +12,13 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ---
 
+## [0.16.7-beta.1] — 2026-05-29
+
+### Changed
+- **Hero search bar** — redesigned to Airbnb-style horizontal single-row pill bar with three sections: Location / Availability / Crew; active section gets an elevated highlight; dividers between sections hide when an adjacent section is active; amber Search button with icon on the right.
+
+---
+
 ## [0.16.6-beta.1] — 2026-05-29
 
 ### Fixed
