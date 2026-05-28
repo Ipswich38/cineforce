@@ -12,6 +12,14 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ---
 
+## [0.16.9-beta.1] — 2026-05-29
+
+### Changed
+- **Homepage** — hero only; removed Marketplace / "Crew, ready." card stack from homepage.
+- **Find page** — Marketplace card stack (swipe-to-browse) moved to `/search`, rendered below the search results grid.
+
+---
+
 ## [0.16.8-beta.1] — 2026-05-29
 
 ### Changed
