@@ -12,6 +12,13 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ---
 
+## [0.16.6-beta.1] — 2026-05-29
+
+### Fixed
+- **Search dropdown backdrop** — opening Role, Dates, or City panel now dims and blurs the page behind it so the dropdown doesn't visually bleed into the Crew Browser section below.
+
+---
+
 ## [0.16.5-beta.1] — 2026-05-29
 
 ### Fixed

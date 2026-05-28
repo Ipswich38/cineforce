@@ -309,7 +309,7 @@ function BookingSearch() {
   return (
     <div style={{ width: "100%", position: "relative" }} ref={barRef}>
       {openPanel && (
-        <div onClick={() => setOpenPanel(null)} style={{ position: "fixed", inset: 0, zIndex: 9998 }} />
+        <div onClick={() => setOpenPanel(null)} style={{ position: "fixed", inset: 0, zIndex: 9998, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)" }} />
       )}
 
       {/* ── Search bar ── */}
