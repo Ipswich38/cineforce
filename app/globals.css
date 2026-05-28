@@ -45,6 +45,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
   line-height: 1.5;
   min-height: 100dvh;
+  zoom: 0.9;
 }
 
 h1, h2, h3, h4 {

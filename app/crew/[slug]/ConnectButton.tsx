@@ -3,15 +3,15 @@
 import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { Send, CheckCircle2, Clock, Phone, Mail, Lock, UserCircle } from "lucide-react";
+import { Send, CheckCircle2, Clock, Phone, Mail, Lock, UserCircle, Zap, ArrowRight } from "lucide-react";
 
 const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
 const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
 
-const SURFACE = "#18181D";
-const TEXT    = "#F0EDE5";
-const MUTED   = "#78787F";
-const AMBER   = "#FFB300";
+const SURFACE = "#101010";
+const TEXT    = "#F7F7F2";
+const MUTED   = "#8E8E93";
+const AMBER   = "#FFCC00";
 const BORDER  = "rgba(255,255,255,0.07)";
 
 type ContactDetails = { phone?: string; email?: string; facebook_url?: string } | null;
@@ -24,6 +24,8 @@ export default function ConnectButton({
   existingRequest,
   contactDetails,
   isLoggedIn,
+  isPremium,
+  viewerSubActive,
 }: {
   crewId: string;
   crewName: string;
@@ -31,6 +33,8 @@ export default function ConnectButton({
   existingRequest: ExistingRequest;
   contactDetails: ContactDetails;
   isLoggedIn: boolean;
+  isPremium: boolean;
+  viewerSubActive: boolean;
 }) {
   const [step,        setStep]        = useState<"idle" | "form" | "sent">(existingRequest ? "sent" : "idle");
   const [projectName, setProjectName] = useState("");
@@ -39,25 +43,32 @@ export default function ConnectButton({
   const [error,       setError]       = useState("");
   const [reqStatus,   setReqStatus]   = useState(existingRequest?.status ?? "");
 
-  const supabase = createClient();
-
   async function sendRequest() {
     if (!projectName.trim()) { setError("Please enter a project name."); return; }
     setLoading(true);
     setError("");
-    const { error: err } = await supabase.from("connection_requests").insert({
-      crew_id: crewId,
-      project_title: projectName.trim(),
-      message: message.trim() || null,
+    const res = await fetch("/api/connections", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        crew_id: crewId,
+        project_title: projectName.trim(),
+        message: message.trim() || null,
+      }),
     });
-    if (err) { setError(err.message); }
-    else { setStep("sent"); setReqStatus("pending"); }
+    if (!res.ok) {
+      const body = await res.json() as { error?: string };
+      setError(body.error ?? "Something went wrong. Try again.");
+    } else {
+      setStep("sent");
+      setReqStatus("pending");
+    }
     setLoading(false);
   }
 
   const inputStyle = {
     width: "100%", padding: "10px 12px", borderRadius: 10,
-    border: `1px solid ${BORDER}`, background: "#111115",
+    border: `1px solid ${BORDER}`, background: "#080808",
     color: TEXT, fontFamily: FT, fontSize: 14, outline: "none",
   } as const;
 
@@ -78,15 +89,29 @@ export default function ConnectButton({
     );
   }
 
+  if (!isOwn && !isPremium) {
+    return (
+      <div className="text-center">
+        <Zap size={24} style={{ color: MUTED, margin: "0 auto 12px" }} />
+        <p style={{ fontFamily: FD, fontWeight: 600, fontSize: 15, color: TEXT, marginBottom: 6 }}>
+          Not accepting requests yet
+        </p>
+        <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, lineHeight: 1.55 }}>
+          {crewName} hasn&apos;t activated their gig profile.
+        </p>
+      </div>
+    );
+  }
+
   if (!isLoggedIn) {
     return (
       <div className="text-center">
         <Lock size={24} style={{ color: MUTED, margin: "0 auto 12px" }} />
         <p style={{ fontFamily: FD, fontWeight: 600, fontSize: 15, color: TEXT, marginBottom: 6 }}>
-          Contact hidden
+          Locked
         </p>
         <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, marginBottom: 18, lineHeight: 1.55 }}>
-          Sign in to send a connection request to {crewName}.
+          Log in to request contact.
         </p>
         <Link href="/auth"
           style={{
@@ -95,7 +120,35 @@ export default function ConnectButton({
             fontFamily: FT, fontSize: 15, fontWeight: 600, textAlign: "center",
           }}
           className="transition-all hover:opacity-85">
-          Sign In to Connect
+          Log in
+        </Link>
+      </div>
+    );
+  }
+
+  if (!viewerSubActive) {
+    return (
+      <div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+          <Zap size={16} style={{ color: "#FF9F0A" }} />
+          <p style={{ fontFamily: FD, fontWeight: 600, fontSize: 15, color: TEXT }}>
+            Trial ended
+          </p>
+        </div>
+        <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, marginBottom: 18, lineHeight: 1.55 }}>
+          Subscribe to keep connecting with crew.
+        </p>
+        <Link href="/subscribe"
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+            padding: "13px", borderRadius: 14,
+            background: AMBER, color: "#000",
+            fontFamily: FT, fontSize: 15, fontWeight: 600,
+            textDecoration: "none",
+            boxShadow: "0 4px 20px rgba(255,179,0,0.25)",
+          }}
+          className="transition-all hover:opacity-85 active:scale-[0.98]">
+          Subscribe for ₱150/month <ArrowRight size={15} />
         </Link>
       </div>
     );
@@ -109,7 +162,7 @@ export default function ConnectButton({
           <p style={{ fontFamily: FD, fontWeight: 600, fontSize: 15, color: TEXT }}>Connected!</p>
         </div>
         <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, marginBottom: 14 }}>
-          {crewName} accepted your request. Contact details:
+          Contact unlocked.
         </p>
         <div className="flex flex-col gap-2">
           {contactDetails.phone && (
@@ -141,7 +194,7 @@ export default function ConnectButton({
           Request sent
         </p>
         <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, lineHeight: 1.55 }}>
-          Waiting for {crewName} to accept. You&apos;ll get their contact details once they respond.
+          Waiting for approval.
         </p>
       </div>
     );
@@ -161,10 +214,10 @@ export default function ConnectButton({
     return (
       <div>
         <p style={{ fontFamily: FD, fontWeight: 600, fontSize: 15, color: TEXT, marginBottom: 4 }}>
-          Connect with {crewName}
+          Request contact
         </p>
         <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, marginBottom: 14 }}>
-          Introduce your project. They&apos;ll share their contact once they accept.
+          Add the project. Keep it short.
         </p>
 
         {error && (
@@ -174,7 +227,7 @@ export default function ConnectButton({
         <div className="flex flex-col gap-2 mb-3">
           <input
             type="text"
-            placeholder="Project name *"
+            placeholder="Project *"
             value={projectName}
             onChange={(e) => setProjectName(e.target.value)}
             style={inputStyle}
@@ -182,7 +235,7 @@ export default function ConnectButton({
             onBlur={(e) => (e.target.style.borderColor = BORDER)}
           />
           <textarea
-            placeholder="Short message (optional)"
+            placeholder="Message (optional)"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             rows={3}
@@ -208,7 +261,7 @@ export default function ConnectButton({
               display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
             }}>
             <Send size={14} />
-            {loading ? "Sending…" : "Send Request"}
+            {loading ? "Sending…" : "Send"}
           </button>
         </div>
       </div>
@@ -220,11 +273,11 @@ export default function ConnectButton({
       <div className="flex items-center gap-2 mb-3">
         <Lock size={16} style={{ color: MUTED }} />
         <p style={{ fontFamily: FD, fontWeight: 600, fontSize: 15, color: TEXT }}>
-          Contact hidden
+          Contact locked
         </p>
       </div>
       <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, marginBottom: 18, lineHeight: 1.55 }}>
-        Send a connect request with your project details. {crewName} will share their contact once they accept.
+        Send a project request. Contact unlocks after approval.
       </p>
       <button onClick={() => setStep("form")}
         style={{
@@ -235,7 +288,7 @@ export default function ConnectButton({
           boxShadow: "0 4px 20px rgba(255,179,0,0.25)",
         }}
         className="transition-all hover:opacity-85 active:scale-[0.98]">
-        <Send size={15} /> Send Connect Request
+        <Send size={15} /> Request contact
       </button>
     </div>
   );

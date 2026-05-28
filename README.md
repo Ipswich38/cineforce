@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CineVerse
 
-## Getting Started
+**Version:** 0.19.0-beta.1 · **Status:** Beta · **Live:** https://cineverseph.vercel.app
 
-First, run the development server:
+A professional crew marketplace for the Philippine film and television industry. Crew members build a discoverable profile card; producers and directors find and connect with vetted crew — fast.
+
+---
+
+## What it does
+
+- **Crew profiles** — role, specializations, city, experience, availability, rate, bio, credits, equipment kit
+- **Search & discovery** — filter by role, location, experience, availability; role auto-suggest with 80+ industry titles
+- **Connection system** — send a request, crew accepts, contact details revealed
+- **Auth** — Google OAuth (one-click) + Magic Link email OTP (no password ever)
+
+---
+
+## Tech stack
+
+| | |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript 5 |
+| Styling | Tailwind CSS v4 + inline design tokens |
+| Database | Supabase (PostgreSQL, 3NF schema, RLS) |
+| Auth | Supabase Auth — Google OAuth + Magic Link |
+| Hosting | Vercel |
+| Package manager | pnpm |
+
+---
+
+## Local setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# 1. Clone and install
+pnpm install
+
+# 2. Create .env.local
+NEXT_PUBLIC_SUPABASE_URL=https://fhlkrenefobhshouuopc.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key>
+SUPABASE_SERVICE_ROLE_KEY=<service role key>
+
+# 3. Run dev server
 pnpm dev
-# or
-bun dev
+# → http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Database schema lives in `supabase/schema.sql`. Run it once in the Supabase SQL editor on a fresh project.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Deploying
 
-## Learn More
+```bash
+pnpm build        # verify build passes
+vercel --prod     # deploy to cineverseph.vercel.app
+```
 
-To learn more about Next.js, take a look at the following resources:
+See `docs/05_DEPLOYMENT.md` for the full versioning workflow.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Documentation
 
-## Deploy on Vercel
+| Doc | Contents |
+|---|---|
+| `docs/01_REQUIREMENTS.md` | User personas, functional + non-functional requirements, out-of-scope features |
+| `docs/02_ARCHITECTURE.md` | Tech stack, directory structure, DB schema, auth flow, key design decisions |
+| `docs/03_DEVELOPMENT.md` | Refactoring history, feature notes, known technical debt |
+| `docs/04_TESTING.md` | Smoke test checklist, regression areas, test log |
+| `docs/05_DEPLOYMENT.md` | Setup, env vars, versioning workflow, rollback |
+| `docs/06_INTEGRATIONS.md` | Supabase, Google OAuth, Vercel — config, usage, common errors |
+| `CHANGELOG.md` | Version history (Keep a Changelog format) |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Versioning
+
+This project uses **Semantic Versioning** with `-beta.N` pre-release tags.  
+Every production deploy corresponds to a version bump in `package.json` and an entry in `CHANGELOG.md`.
+
+Current: `0.19.0-beta.1` · Next: `0.19.1-beta.1` (next fix) or `0.20.0-beta.1` (next feature)

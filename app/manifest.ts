@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "YourNextCrew",
-    short_name: "YourNextCrew",
-    description: "The Philippines' first. Built for every side of production.",
+    name: "CineVerse",
+    short_name: "CineVerse",
+    description: "Your Next Set Is a Tap Away.",
     start_url: "/",
     display: "standalone",
     background_color: "#000000",

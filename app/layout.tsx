@@ -1,20 +1,21 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
+import VersionChecker from "@/components/VersionChecker";
 
 export const metadata: Metadata = {
-  title: "YourNextCrew — The Philippines' First Crew Network",
-  description: "The Philippines' first platform built for every side of production. Find excellent crew for your project, or find the right job for your craft.",
+  title: "CineVerse — Your Next Set Is a Tap Away.",
+  description: "The Philippines' first on-demand marketplace connecting film and media crew with productions. Find the right people for your project, or find your next gig.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "YourNextCrew",
+    title: "CineVerse",
   },
   openGraph: {
-    title: "YourNextCrew",
-    description: "The Philippines' first. Built for every side of production.",
-    siteName: "YourNextCrew",
+    title: "CineVerse",
+    description: "Your Next Set Is a Tap Away.",
+    siteName: "CineVerse",
   },
 };
 
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-full">
         {children}
         <BottomNav />
+        <VersionChecker />
       </body>
     </html>
   );

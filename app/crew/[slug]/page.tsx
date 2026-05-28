@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 import { createClient } from "@/lib/supabase/server";
 import { ROLES, EXPERIENCE_LEVELS, AVAILABILITY, PROJECT_TYPES } from "@/lib/constants";
+import { isSubscriptionActive } from "@/lib/subscription";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import ConnectButton from "./ConnectButton";
@@ -38,6 +39,7 @@ export default async function CrewProfilePage({ params }: { params: Promise<{ sl
   let existingRequest: { id: string; status: string } | null = null;
   let contactDetails: { phone?: string; email?: string; facebook_url?: string } | null = null;
   let user: { id: string } | null = null;
+  let viewerSubActive = true; // assume active for logged-out viewers (gated by isLoggedIn check)
 
   try {
     const supabase = await createClient();
@@ -66,13 +68,21 @@ export default async function CrewProfilePage({ params }: { params: Promise<{ sl
       credits = (cr ?? []) as typeof credits;
 
       if (user) {
-        const { data } = await supabase
-          .from("connection_requests")
-          .select("id, status")
-          .eq("client_id", user.id)
-          .eq("crew_id", pid)
-          .single();
-        existingRequest = data;
+        const [{ data: reqData }, { data: viewerProfile }] = await Promise.all([
+          supabase
+            .from("connection_requests")
+            .select("id, status")
+            .eq("client_id", user.id)
+            .eq("crew_id", pid)
+            .single(),
+          supabase
+            .from("profiles")
+            .select("premium_status, trial_started_at")
+            .eq("id", user.id)
+            .single(),
+        ]);
+        existingRequest = reqData;
+        viewerSubActive = viewerProfile ? isSubscriptionActive(viewerProfile) : false;
       }
 
       if (user && existingRequest?.status === "accepted") {
@@ -108,7 +118,7 @@ export default async function CrewProfilePage({ params }: { params: Promise<{ sl
           </Link>
           <div className="flex items-center gap-2">
             <Clapperboard size={15} style={{ color: AMBER }} strokeWidth={2} />
-            <span style={{ fontFamily: FD, fontWeight: 700, fontSize: 16, color: TEXT, letterSpacing: "-0.02em" }}>YourNextCrew</span>
+            <span style={{ fontFamily: FD, fontWeight: 700, fontSize: 16, color: TEXT, letterSpacing: "-0.02em" }}>CineVerse</span>
           </div>
           <div style={{ width: 64 }} />
         </div>
@@ -289,7 +299,8 @@ export default async function CrewProfilePage({ params }: { params: Promise<{ sl
             existingRequest={existingRequest}
             contactDetails={contactDetails}
             isLoggedIn={!!user}
-            isPremium={profile.premium_status === "active"}
+            isPremium={isSubscriptionActive(profile)}
+            viewerSubActive={viewerSubActive}
           />
         </div>
       </div>

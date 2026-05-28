@@ -4,7 +4,8 @@ import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { ArrowLeft, Mail, Clapperboard, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Clapperboard } from "lucide-react";
+import LegalModal, { hasAgreedToTerms, recordAgreement } from "@/components/LegalModal";
 
 const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
 const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
@@ -32,16 +33,15 @@ function AuthPageInner() {
   const nextParam = searchParams.get("next");
 
   const [tab,     setTab]     = useState<"signin" | "join">(intent === "join" ? "join" : "signin");
-  const [email,   setEmail]   = useState("");
-  const [loading, setLoading] = useState(false);
-  const [sent,    setSent]    = useState(false);
   const [error,   setError]   = useState("");
+  const [showLegal,     setShowLegal]     = useState(false);
+  const [pendingAction, setPendingAction] = useState<"google" | null>(null);
 
   function dest() {
     return nextParam ?? (tab === "join" ? "/join" : "/dashboard");
   }
 
-  async function handleGoogleAuth() {
+  async function doGoogleAuth() {
     const sb = createClient();
     await sb.auth.signInWithOAuth({
       provider: "google",
@@ -49,23 +49,33 @@ function AuthPageInner() {
     });
   }
 
-  async function handleEmailContinue(e: React.FormEvent) {
-    e.preventDefault();
-    if (!email.trim()) return;
-    setLoading(true);
-    setError("");
-    const sb = createClient();
-    const { error: otpError } = await sb.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${location.origin}/auth/callback?next=${dest()}` },
-    });
-    if (otpError) { setError(otpError.message); setLoading(false); return; }
-    setSent(true);
-    setLoading(false);
+  async function handleGoogleAuth() {
+    if (hasAgreedToTerms()) {
+      await doGoogleAuth();
+    } else {
+      setPendingAction("google");
+      setShowLegal(true);
+    }
+  }
+
+  async function handleAgree() {
+    recordAgreement();
+    setShowLegal(false);
+    if (pendingAction === "google") {
+      setPendingAction(null);
+      await doGoogleAuth();
+    }
+  }
+
+  function handleDecline() {
+    setShowLegal(false);
+    setPendingAction(null);
   }
 
   return (
     <div style={{ background: BG, minHeight: "100dvh", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" }}>
+
+      {showLegal && <LegalModal onAgree={handleAgree} onDecline={handleDecline} />}
 
       {/* Ambient glow */}
       <div style={{
@@ -81,7 +91,7 @@ function AuthPageInner() {
           className="hover:opacity-70 transition-opacity">
           <ArrowLeft size={15} />
           <Clapperboard size={15} style={{ color: AMBER }} strokeWidth={2} />
-          <span style={{ fontFamily: FD, fontWeight: 700, fontSize: 16, color: TEXT, letterSpacing: "-0.02em" }}>YourNextCrew</span>
+          <span style={{ fontFamily: FD, fontWeight: 700, fontSize: 16, color: TEXT, letterSpacing: "-0.02em" }}>CineVerse</span>
         </Link>
       </div>
 
@@ -104,182 +114,87 @@ function AuthPageInner() {
 
             <div style={{ padding: "clamp(28px,7%,40px)" }}>
 
-              {sent ? (
-                /* ── Check inbox ── */
-                <div style={{ textAlign: "center", padding: "8px 0 4px" }}>
-                  <div style={{
-                    width: 68, height: 68, borderRadius: "50%", margin: "0 auto 24px",
-                    background: "rgba(50,215,75,0.08)", border: "1px solid rgba(50,215,75,0.2)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>
-                    <CheckCircle2 size={30} style={{ color: "#32D74B" }} />
-                  </div>
-                  <h1 style={{ fontFamily: FD, fontWeight: 700, fontSize: 26, color: TEXT, letterSpacing: "-0.028em", marginBottom: 10 }}>
-                    Check your inbox
-                  </h1>
-                  <p style={{ fontFamily: FT, fontSize: 15, color: MUTED, lineHeight: 1.6, marginBottom: 8 }}>
-                    Magic link sent to
-                  </p>
-                  <p style={{ fontFamily: FT, fontSize: 16, color: TEXT, fontWeight: 600, marginBottom: 24 }}>
-                    {email}
-                  </p>
-                  <p style={{ fontFamily: FT, fontSize: 13, color: "rgba(255,255,255,0.28)", lineHeight: 1.7, marginBottom: 32 }}>
-                    Tap the link in your email to sign in.
-                    <br />No password needed, ever.
-                  </p>
-                  <button
-                    onClick={() => { setSent(false); setError(""); }}
-                    style={{
-                      background: "rgba(255,179,0,0.08)", border: "1px solid rgba(255,179,0,0.2)",
-                      borderRadius: 999, padding: "10px 22px",
-                      cursor: "pointer", fontFamily: FT, fontSize: 14, color: AMBER, fontWeight: 600,
-                    }}
-                    className="transition-all hover:opacity-80 active:scale-[0.97]">
-                    Use a different email
-                  </button>
+              <>
+                {/* Logo mark */}
+                <div style={{
+                  width: 48, height: 48, borderRadius: 14,
+                  background: "rgba(255,179,0,0.1)", border: "1px solid rgba(255,179,0,0.2)",
+                  display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24,
+                }}>
+                  <Clapperboard size={21} style={{ color: AMBER }} strokeWidth={1.8} />
                 </div>
 
-              ) : (
-                <>
-                  {/* Logo mark */}
-                  <div style={{
-                    width: 48, height: 48, borderRadius: 14,
-                    background: "rgba(255,179,0,0.1)", border: "1px solid rgba(255,179,0,0.2)",
-                    display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24,
-                  }}>
-                    <Clapperboard size={21} style={{ color: AMBER }} strokeWidth={1.8} />
-                  </div>
-
-                  {/* Tab switcher — pill segmented control */}
-                  <div style={{
-                    display: "flex", background: "rgba(255,255,255,0.05)",
-                    borderRadius: 999, padding: 3, marginBottom: 28, gap: 3,
-                  }}>
-                    {(["signin", "join"] as const).map((t) => (
-                      <button key={t} type="button"
-                        onClick={() => { setTab(t); setError(""); }}
-                        style={{
-                          flex: 1, height: 40, borderRadius: 999, cursor: "pointer", border: "none",
-                          background: tab === t
-                            ? t === "join" ? AMBER : "rgba(255,255,255,0.1)"
-                            : "transparent",
-                          color: tab === t
-                            ? t === "join" ? "#000" : TEXT
-                            : MUTED,
-                          fontFamily: FT, fontSize: 14, fontWeight: tab === t ? 700 : 400,
-                          transition: "all 0.18s",
-                        }}>
-                        {t === "signin" ? "Log in" : "Sign up"}
-                      </button>
-                    ))}
-                  </div>
-
-                  <h1 style={{ fontFamily: FD, fontWeight: 700, fontSize: "clamp(22px,5vw,28px)", color: TEXT, letterSpacing: "-0.028em", marginBottom: 6 }}>
-                    {tab === "signin" ? "Welcome back" : "Join the crew"}
-                  </h1>
-                  <p style={{ fontFamily: FT, fontSize: 15, color: MUTED, lineHeight: 1.55, marginBottom: 28 }}>
-                    {tab === "signin"
-                      ? "Manage your card and incoming requests."
-                      : "Build your crew card. Get found. Stay booked."}
-                  </p>
-
-                  {/* Google — pill button */}
-                  <button onClick={handleGoogleAuth}
-                    className="transition-all hover:opacity-92 active:scale-[0.98]"
-                    style={{
-                      width: "100%", height: 54, borderRadius: 999,
-                      background: "#ffffff", border: "none",
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-                      fontFamily: FT, fontSize: 15, fontWeight: 600, color: "#1a1a1a",
-                      cursor: "pointer", marginBottom: 18,
-                      boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
-                    }}>
-                    <GoogleLogo />
-                    {tab === "signin" ? "Continue with Google" : "Sign up with Google"}
-                  </button>
-
-                  {/* Divider */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 18 }}>
-                    <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.07)" }} />
-                    <span style={{ fontFamily: FT, fontSize: 12, color: "rgba(255,255,255,0.28)" }}>or continue with email</span>
-                    <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.07)" }} />
-                  </div>
-
-                  {/* Error */}
-                  {error && (
-                    <div style={{
-                      padding: "10px 16px", borderRadius: 12,
-                      background: "rgba(255,69,58,0.08)", border: "1px solid rgba(255,69,58,0.2)",
-                      marginBottom: 14,
-                    }}>
-                      <p style={{ fontFamily: FT, fontSize: 13, color: "#FF453A" }}>{error}</p>
-                    </div>
-                  )}
-
-                  {/* Email form */}
-                  <form onSubmit={handleEmailContinue} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-
-                    {/* Email pill input */}
-                    <div style={{
-                      display: "flex", alignItems: "center", gap: 10,
-                      background: "#080808", borderRadius: 999,
-                      border: `1px solid ${BORDER}`,
-                      padding: "0 18px",
-                      transition: "border-color 0.18s",
-                    }}
-                      onFocusCapture={(e) => (e.currentTarget.style.borderColor = "rgba(255,179,0,0.4)")}
-                      onBlurCapture={(e) => (e.currentTarget.style.borderColor = BORDER)}>
-                      <Mail size={15} style={{ color: MUTED, flexShrink: 0 }} />
-                      <input
-                        type="email"
-                        placeholder="Email address"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        autoComplete="email"
-                        autoCorrect="off"
-                        autoCapitalize="none"
-                        style={{
-                          flex: 1, background: "none", border: "none", outline: "none",
-                          color: TEXT, fontFamily: FT, fontSize: 16,
-                          padding: "14px 0",
-                        }}
-                      />
-                    </div>
-
-                    {/* Submit pill button */}
-                    <button type="submit" disabled={loading}
-                      className="transition-all active:scale-[0.98]"
+                {/* Tab switcher */}
+                <div style={{
+                  display: "flex", background: "rgba(255,255,255,0.05)",
+                  borderRadius: 999, padding: 3, marginBottom: 28, gap: 3,
+                }}>
+                  {(["signin", "join"] as const).map((t) => (
+                    <button key={t} type="button"
+                      onClick={() => { setTab(t); setError(""); }}
                       style={{
-                        width: "100%", height: 54, borderRadius: 999, border: "none",
-                        background: loading ? "rgba(255,179,0,0.5)" : AMBER,
-                        color: "#000", fontFamily: FT, fontSize: 15, fontWeight: 700,
-                        cursor: loading ? "not-allowed" : "pointer",
-                        letterSpacing: "-0.01em",
-                        boxShadow: loading ? "none" : "0 1px 0 rgba(255,255,255,0.3) inset",
+                        flex: 1, height: 40, borderRadius: 999, cursor: "pointer", border: "none",
+                        background: tab === t
+                          ? t === "join" ? AMBER : "rgba(255,255,255,0.1)"
+                          : "transparent",
+                        color: tab === t ? (t === "join" ? "#000" : TEXT) : MUTED,
+                        fontFamily: FT, fontSize: 14, fontWeight: tab === t ? 700 : 400,
+                        transition: "all 0.18s",
                       }}>
-                      {loading ? "Sending link…" : tab === "signin" ? "Send magic link" : "Continue"}
+                      {t === "signin" ? "Log in" : "Sign up"}
                     </button>
-                  </form>
+                  ))}
+                </div>
 
-                  {/* Switch tab */}
-                  <p style={{ fontFamily: FT, fontSize: 14, color: "rgba(255,255,255,0.35)", textAlign: "center", marginTop: 24 }}>
-                    {tab === "signin" ? "New to YourNextCrew?" : "Already a member?"}
-                    {" "}
-                    <button
-                      onClick={() => { setTab(tab === "signin" ? "join" : "signin"); setError(""); }}
-                      style={{ color: AMBER, background: "none", border: "none", cursor: "pointer", fontFamily: FT, fontSize: 14, fontWeight: 600 }}
-                      className="hover:opacity-70 transition-opacity">
-                      {tab === "signin" ? "Sign up free" : "Log in"}
-                    </button>
-                  </p>
-                </>
-              )}
+                <h1 style={{ fontFamily: FD, fontWeight: 700, fontSize: "clamp(22px,5vw,28px)", color: TEXT, letterSpacing: "-0.028em", marginBottom: 6 }}>
+                  {tab === "signin" ? "Welcome back" : "Join the crew"}
+                </h1>
+                <p style={{ fontFamily: FT, fontSize: 15, color: MUTED, lineHeight: 1.55, marginBottom: 28 }}>
+                  {tab === "signin"
+                    ? "Manage your card and incoming requests."
+                    : "Your next set is a tap away. Build your card now."}
+                </p>
+
+                {error && (
+                  <div style={{
+                    padding: "10px 16px", borderRadius: 12,
+                    background: "rgba(255,69,58,0.08)", border: "1px solid rgba(255,69,58,0.2)",
+                    marginBottom: 16,
+                  }}>
+                    <p style={{ fontFamily: FT, fontSize: 13, color: "#FF453A" }}>{error}</p>
+                  </div>
+                )}
+
+                <button onClick={handleGoogleAuth}
+                  className="transition-all hover:opacity-92 active:scale-[0.98]"
+                  style={{
+                    width: "100%", height: 54, borderRadius: 999,
+                    background: "#ffffff", border: "none",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                    fontFamily: FT, fontSize: 15, fontWeight: 600, color: "#1a1a1a",
+                    cursor: "pointer",
+                    boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
+                  }}>
+                  <GoogleLogo />
+                  {tab === "signin" ? "Continue with Google" : "Sign up with Google"}
+                </button>
+
+                <p style={{ fontFamily: FT, fontSize: 14, color: "rgba(255,255,255,0.35)", textAlign: "center", marginTop: 24 }}>
+                  {tab === "signin" ? "New to CineVerse?" : "Already a member?"}
+                  {" "}
+                  <button
+                    onClick={() => { setTab(tab === "signin" ? "join" : "signin"); setError(""); }}
+                    style={{ color: AMBER, background: "none", border: "none", cursor: "pointer", fontFamily: FT, fontSize: 14, fontWeight: 600 }}
+                    className="hover:opacity-70 transition-opacity">
+                    {tab === "signin" ? "Sign up" : "Log in"}
+                  </button>
+                </p>
+              </>
+
             </div>
           </div>
 
-          {/* Footer note */}
-          {!sent && tab === "join" && (
+          {tab === "join" && (
             <p style={{ fontFamily: FT, fontSize: 12, color: "rgba(255,255,255,0.2)", textAlign: "center", marginTop: 18, lineHeight: 1.7 }}>
               Your card is public. Contact info stays gated behind a request.
             </p>

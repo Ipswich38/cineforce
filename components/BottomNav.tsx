@@ -2,8 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { Home, Search, Info, User, X, ArrowRight } from "lucide-react";
+import { usePathname } from "next/navigation";
+import {
+  Home, Search, Info, User, X, ArrowRight,
+  LayoutDashboard, LogOut, Settings, CreditCard,
+  Inbox, Users,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
@@ -13,49 +17,122 @@ const MUTED  = "#636366";
 const BORDER = "rgba(255,255,255,0.07)";
 const TEXT   = "#F7F7F2";
 
-const NAV_TABS = [
-  { href: "/",        icon: Home,   label: "Home" },
-  { href: "/search",  icon: Search, label: "Find" },
-  { href: "/about",   icon: Info,   label: "About" },
-] as const;
-
 const HIDDEN_ON = ["/join", "/admin", "/auth"];
 
-export default function BottomNav() {
-  const path   = usePathname();
-  const router = useRouter();
+type Profile = { slug: string | null; account_type: string | null } | null;
 
-  const [isLoggedIn,  setIsLoggedIn]  = useState<boolean | null>(null);
-  const [showSheet,   setShowSheet]   = useState(false);
+function TabItem({
+  href, icon: Icon, label, active,
+}: { href: string; icon: React.ElementType; label: string; active: boolean }) {
+  return (
+    <Link
+      href={href}
+      style={{
+        flex: 1, display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
+        gap: 4, padding: "10px 4px 12px",
+        color: active ? AMBER : MUTED,
+        textDecoration: "none", transition: "color 0.15s",
+        WebkitTapHighlightColor: "transparent",
+      }}>
+      <Icon size={22} strokeWidth={active ? 2.2 : 1.7} />
+      <span style={{ fontFamily: FT, fontSize: 10, fontWeight: active ? 600 : 400, letterSpacing: "0.01em", lineHeight: 1 }}>
+        {label}
+      </span>
+    </Link>
+  );
+}
+
+export default function BottomNav() {
+  const path = usePathname();
+
+  const [isLoggedIn, setIsLoggedIn]  = useState<boolean | null>(null);
+  const [profile,    setProfile]     = useState<Profile>(null);
+  const [showSheet,  setShowSheet]   = useState(false);
 
   useEffect(() => {
     const sb = createClient();
-    sb.auth.getUser().then(({ data }) => setIsLoggedIn(!!data.user));
+
+    async function load() {
+      const { data: { user } } = await sb.auth.getUser();
+      setIsLoggedIn(!!user);
+      if (user) {
+        const { data } = await sb.from("profiles")
+          .select("slug, account_type")
+          .eq("id", user.id)
+          .single();
+        setProfile(data);
+      } else {
+        setProfile(null);
+      }
+    }
+
+    load();
+
     const { data: { subscription } } = sb.auth.onAuthStateChange((_, session) => {
       setIsLoggedIn(!!session?.user);
-      if (session?.user) setShowSheet(false);
+      if (!session?.user) setProfile(null);
     });
     return () => subscription.unsubscribe();
   }, []);
 
   if (HIDDEN_ON.some((p) => path.startsWith(p))) return null;
 
-  const accountActive = path.startsWith("/dashboard");
-
-  function handleAccountTap() {
-    if (isLoggedIn) {
-      router.push("/dashboard");
-    } else {
-      setShowSheet((v) => !v);
-    }
+  async function handleLogout() {
+    const sb = createClient();
+    await sb.auth.signOut();
+    window.location.href = "/";
   }
 
+  const isClient = profile?.account_type === "client";
+
+  // ── Logged-in nav ────────────────────────────────────────────────────────────
+  if (isLoggedIn) {
+    const crewCardHref = profile?.slug ? `/crew/${profile.slug}` : "/dashboard";
+
+    const loggedInTabs = isClient
+      ? [
+          { href: "/dashboard", icon: LayoutDashboard, label: "Home" },
+          { href: "/search",    icon: Users,            label: "Find Crew" },
+          { href: "/settings",  icon: Settings,         label: "Account" },
+        ]
+      : [
+          { href: "/dashboard",  icon: LayoutDashboard, label: "Home" },
+          { href: "/search",     icon: Search,          label: "Find" },
+          { href: crewCardHref,  icon: CreditCard,      label: "My Card" },
+          { href: "/settings",   icon: Settings,        label: "Account" },
+        ];
+
+    return (
+      <nav
+        className="md:hidden"
+        style={{
+          position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 50,
+          background: "rgba(10,10,12,0.96)",
+          backdropFilter: "blur(24px) saturate(160%)",
+          WebkitBackdropFilter: "blur(24px) saturate(160%)",
+          borderTop: `1px solid ${BORDER}`,
+          paddingBottom: "env(safe-area-inset-bottom, 0px)",
+          display: "flex",
+        }}>
+        {loggedInTabs.map(({ href, icon, label }) => {
+          const active = href === "/dashboard"
+            ? path === "/dashboard"
+            : href === "/settings"
+              ? path.startsWith("/settings") || path.startsWith("/legal")
+              : path.startsWith(href);
+          return <TabItem key={href} href={href} icon={icon} label={label} active={active} />;
+        })}
+      </nav>
+    );
+  }
+
+  // ── Public nav ───────────────────────────────────────────────────────────────
   return (
     <>
-      {/* Auth sheet — slides up when Account is tapped and not logged in */}
+      {/* Auth sheet */}
       {showSheet && (
         <>
-          {/* Backdrop */}
           <div
             onClick={() => setShowSheet(false)}
             style={{
@@ -65,29 +142,22 @@ export default function BottomNav() {
               WebkitBackdropFilter: "blur(4px)",
             }}
           />
-
-          {/* Sheet */}
           <div
             className="menu-slide"
             style={{
               position: "fixed",
               bottom: "calc(68px + env(safe-area-inset-bottom, 0px))",
-              left: 12, right: 12,
-              zIndex: 49,
+              left: 12, right: 12, zIndex: 49,
               background: "rgba(16,16,20,0.98)",
               border: "1px solid rgba(255,255,255,0.1)",
               borderRadius: 20,
               padding: "22px 20px 20px",
               boxShadow: "0 -4px 40px rgba(0,0,0,0.55), 0 2px 0 rgba(255,255,255,0.04) inset",
             }}>
-
-            {/* Dismiss handle */}
             <div style={{
               position: "absolute", top: 10, left: "50%", transform: "translateX(-50%)",
               width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.15)",
             }} />
-
-            {/* Dismiss X */}
             <button
               onClick={() => setShowSheet(false)}
               style={{
@@ -99,18 +169,15 @@ export default function BottomNav() {
               }}>
               <X size={13} />
             </button>
-
             <div style={{ marginBottom: 18, paddingRight: 36 }}>
               <p style={{ fontFamily: FD, fontWeight: 700, fontSize: 17, color: TEXT, marginBottom: 4 }}>
-                Already in film?
+                Your next set is a tap away.
               </p>
               <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, lineHeight: 1.5 }}>
-                Join or log in to manage your crew card.
+                Join or log in to manage your CineVerse card.
               </p>
             </div>
-
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {/* Sign up — amber pill */}
               <Link href="/auth?intent=join"
                 onClick={() => setShowSheet(false)}
                 style={{
@@ -119,13 +186,10 @@ export default function BottomNav() {
                   background: AMBER, color: "#000",
                   fontFamily: FT, fontSize: 15, fontWeight: 700,
                   textDecoration: "none",
-                  boxShadow: "0 4px 20px rgba(255,179,0,0.25), 0 1px 0 rgba(255,255,255,0.3) inset",
                 }}
                 className="transition-all hover:opacity-90 active:scale-[0.98]">
                 Sign up free <ArrowRight size={14} />
               </Link>
-
-              {/* Log in — outline pill */}
               <Link href="/auth"
                 onClick={() => setShowSheet(false)}
                 style={{
@@ -145,7 +209,6 @@ export default function BottomNav() {
         </>
       )}
 
-      {/* Tab bar */}
       <nav
         className="md:hidden"
         style={{
@@ -157,47 +220,28 @@ export default function BottomNav() {
           paddingBottom: "env(safe-area-inset-bottom, 0px)",
           display: "flex",
         }}>
-
-        {/* Static tabs: Home, Find, About */}
-        {NAV_TABS.map(({ href, icon: Icon, label }) => {
+        {[
+          { href: "/",       icon: Home,   label: "Home" },
+          { href: "/search", icon: Search, label: "Find" },
+          { href: "/about",  icon: Info,   label: "About" },
+        ].map(({ href, icon, label }) => {
           const active = href === "/" ? path === "/" : path.startsWith(href);
-          return (
-            <Link
-              key={href}
-              href={href}
-              style={{
-                flex: 1,
-                display: "flex", flexDirection: "column",
-                alignItems: "center", justifyContent: "center",
-                gap: 4, padding: "10px 4px 12px",
-                color: active ? AMBER : MUTED,
-                textDecoration: "none",
-                transition: "color 0.15s",
-                WebkitTapHighlightColor: "transparent",
-              }}>
-              <Icon size={22} strokeWidth={active ? 2.2 : 1.7} />
-              <span style={{ fontFamily: FT, fontSize: 10, fontWeight: active ? 600 : 400, letterSpacing: "0.01em", lineHeight: 1 }}>
-                {label}
-              </span>
-            </Link>
-          );
+          return <TabItem key={href} href={href} icon={icon} label={label} active={active} />;
         })}
 
-        {/* Account tab — smart: opens sheet if not logged in */}
         <button
-          onClick={handleAccountTap}
+          onClick={() => setShowSheet((v) => !v)}
           style={{
-            flex: 1,
-            display: "flex", flexDirection: "column",
+            flex: 1, display: "flex", flexDirection: "column",
             alignItems: "center", justifyContent: "center",
             gap: 4, padding: "10px 4px 12px",
-            color: accountActive || showSheet ? AMBER : MUTED,
+            color: showSheet ? AMBER : MUTED,
             background: "none", border: "none", cursor: "pointer",
             transition: "color 0.15s",
             WebkitTapHighlightColor: "transparent",
           }}>
-          <User size={22} strokeWidth={accountActive || showSheet ? 2.2 : 1.7} />
-          <span style={{ fontFamily: FT, fontSize: 10, fontWeight: accountActive || showSheet ? 600 : 400, letterSpacing: "0.01em", lineHeight: 1 }}>
+          <User size={22} strokeWidth={showSheet ? 2.2 : 1.7} />
+          <span style={{ fontFamily: FT, fontSize: 10, fontWeight: showSheet ? 600 : 400, letterSpacing: "0.01em", lineHeight: 1 }}>
             Account
           </span>
         </button>

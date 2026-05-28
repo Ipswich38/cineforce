@@ -12,7 +12,7 @@ const SURFACE = "#101010";
 const TEXT    = "#F7F7F2";
 const MUTED   = "#8E8E93";
 const AMBER   = "#FFCC00";
-const TEAL    = "#2CC0C8";
+const TEAL    = AMBER;
 const BORDER  = "rgba(255,255,255,0.08)";
 
 const features = [
@@ -51,7 +51,7 @@ export default async function AboutPage() {
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, color: TEXT }}>
             <ArrowLeft size={16} style={{ color: MUTED }} />
             <Clapperboard size={16} style={{ color: AMBER }} />
-            <span style={{ fontFamily: FD, fontWeight: 700, fontSize: 16 }}>YourNextCrew</span>
+            <span style={{ fontFamily: FD, fontWeight: 700, fontSize: 16 }}>CineVerse</span>
           </Link>
           <div className="nav-actions">
             <Link href="/search" style={{ fontFamily: FT, fontSize: 14, color: MUTED }}>Find</Link>
@@ -74,7 +74,7 @@ export default async function AboutPage() {
             </h1>
           </div>
           <p style={{ fontFamily: FT, color: MUTED, fontSize: 17, lineHeight: 1.65 }}>
-            Whether you&apos;re hiring or available, YourNextCrew bridges productions with the right crew, equipment, and locations. Fast, professional, and built around real experience.
+            Whether you&apos;re hiring or available, CineVerse connects productions with the right crew, equipment, and locations. Fast, professional, and built around real experience.
           </p>
         </div>
       </section>
@@ -134,6 +134,42 @@ export default async function AboutPage() {
               Find crew <ArrowRight size={15} />
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* ── How it works ── */}
+      <section className="app-container" style={{ paddingBottom: "clamp(56px,9vw,104px)" }}>
+        <p style={{ fontFamily: FT, fontSize: 11, color: AMBER, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 14 }}>How it works</p>
+        <h2 style={{ fontFamily: FD, fontSize: "clamp(1.7rem,3vw,2.4rem)", lineHeight: 1.1, letterSpacing: "-0.025em", marginBottom: "clamp(32px,5vw,48px)" }}>
+          From search to set. <span style={{ color: AMBER }}>Fast.</span>
+        </h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "clamp(14px,2.5vw,24px)", marginBottom: "clamp(28px,4vw,40px)" }}>
+          {[
+            { num: "01", icon: "🔍", title: "Search by role and date", desc: "Pick a role, set your project dates, and choose a city. CineVerse shows crew who are actually available." },
+            { num: "02", icon: "🃏", title: "Browse profile cards",    desc: "See rate, experience, specializations, and availability at a glance. No cold DMs into the void." },
+            { num: "03", icon: "💬", title: "Connect and chat",        desc: "Send a connection request with your project details. Once accepted, chat directly inside the app." },
+          ].map((s) => (
+            <div key={s.num} style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 18, padding: "clamp(20px,3.5vw,28px)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+                <span style={{ fontFamily: FD, fontSize: 10, fontWeight: 700, color: AMBER, letterSpacing: "0.1em" }}>{s.num}</span>
+                <span style={{ fontSize: 20 }}>{s.icon}</span>
+              </div>
+              <p style={{ fontFamily: FD, fontWeight: 700, fontSize: 16, color: TEXT, marginBottom: 8, lineHeight: 1.3 }}>{s.title}</p>
+              <p style={{ fontFamily: FT, fontSize: 14, color: MUTED, lineHeight: 1.65 }}>{s.desc}</p>
+            </div>
+          ))}
+        </div>
+        <div style={{ padding: "clamp(20px,3.5vw,30px)", borderRadius: 16, background: "linear-gradient(135deg, rgba(255,204,0,0.06) 0%, transparent 100%)", border: "1px solid rgba(255,204,0,0.14)", display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap" }}>
+          <div style={{ width: 48, height: 48, borderRadius: 14, background: "rgba(255,204,0,0.1)", border: "1px solid rgba(255,204,0,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Search size={20} style={{ color: AMBER }} />
+          </div>
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <p style={{ fontFamily: FD, fontWeight: 700, fontSize: 16, color: TEXT, marginBottom: 4 }}>Crew set their own availability</p>
+            <p style={{ fontFamily: FT, fontSize: 14, color: MUTED, lineHeight: 1.6 }}>Search by date and only see crew who are free for your shoot window.</p>
+          </div>
+          <Link href="/search" style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, padding: "10px 18px", borderRadius: 10, background: AMBER, color: "#000", fontFamily: FT, fontWeight: 700, fontSize: 14, textDecoration: "none" }}>
+            Find crew <ArrowRight size={13} />
+          </Link>
         </div>
       </section>
 
