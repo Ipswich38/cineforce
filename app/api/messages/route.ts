@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 
 export async function GET(req: NextRequest) {
   const supabase = await createClient();
@@ -12,18 +12,22 @@ export async function GET(req: NextRequest) {
 
   if (!connectionId) return NextResponse.json({ error: "Missing connectionId" }, { status: 400 });
 
-  const { data: conn } = await supabase
+  // Use admin client to verify connection — avoids RLS silently returning null
+  const admin = createAdminClient();
+  const { data: conn } = await admin
     .from("connection_requests")
     .select("id, crew_id, client_id, status")
     .eq("id", connectionId)
     .single();
 
-  if (!conn || conn.status !== "accepted") return NextResponse.json({ messages: [] });
+  if (!conn) return NextResponse.json({ messages: [] });
+  if (conn.status !== "accepted") return NextResponse.json({ messages: [] });
   if (conn.crew_id !== user.id && conn.client_id !== user.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
-  let query = supabase
+  // Use admin client for messages — access already verified above
+  let query = admin
     .from("messages")
     .select("id, sender_id, body, created_at")
     .eq("connection_id", connectionId)
@@ -54,8 +58,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing fields." }, { status: 400 });
   }
 
-  // Verify user is part of this accepted connection
-  const { data: conn } = await supabase
+  // Use admin client to verify — avoids RLS returning null on accepted connections
+  const admin = createAdminClient();
+  const { data: conn } = await admin
     .from("connection_requests")
     .select("id, crew_id, client_id, status")
     .eq("id", connectionId)
@@ -68,7 +73,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 403 });
   }
 
-  const { data, error } = await supabase
+  // Insert via admin client — access already verified above
+  const { data, error } = await admin
     .from("messages")
     .insert({ connection_id: connectionId, sender_id: user.id, body: content.trim() })
     .select("id, sender_id, body, created_at")
@@ -80,8 +86,7 @@ export async function POST(req: NextRequest) {
     ? { id: data.id, sender_id: data.sender_id, content: data.body, created_at: data.created_at }
     : null;
 
-  // Broadcast to the Realtime channel so the recipient gets it instantly.
-  // Fire-and-forget — polling is the fallback if this fails.
+  // Broadcast to Realtime channel (fire-and-forget — polling is the fallback)
   if (message) {
     fetch(
       `${process.env.NEXT_PUBLIC_SUPABASE_URL}/realtime/v1/api/broadcast`,

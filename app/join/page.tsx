@@ -735,38 +735,45 @@ export default function JoinPage() {
               {/* Rate */}
               <div>
                 <label style={{ fontFamily: FT, fontSize: 13, fontWeight: 500, color: MUTED, display: "block", marginBottom: 8 }}>
-                  Day rate (₱)
+                  Rate (₱)
                 </label>
-                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  <div style={{ flex: 1, position: "relative" }}>
-                    <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", fontFamily: FT, fontSize: 14, color: MUTED, pointerEvents: "none" }}>₱</span>
+                {/* Min / Max on one row, unit selector below */}
+                <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
+                  {/* Min */}
+                  <div style={{
+                    flex: 1, display: "flex", alignItems: "center",
+                    border: `1px solid ${BORDER}`, borderRadius: 12, background: "#080808",
+                    overflow: "hidden", minWidth: 0,
+                  }}>
+                    <span style={{ padding: "13px 4px 13px 14px", fontFamily: FT, fontSize: 15, color: MUTED, flexShrink: 0, userSelect: "none" }}>₱</span>
                     <input
                       type="text" inputMode="numeric" pattern="[0-9]*"
                       value={rateMin} onChange={(e) => setRateMin(e.target.value.replace(/\D/g, ""))}
                       placeholder="Min"
-                      style={{ ...inputStyle, paddingLeft: 28, color: TEXT, fontSize: 15 }}
-                      onFocus={(e) => (e.target.style.borderColor = "rgba(255,179,0,0.4)")}
-                      onBlur={(e)  => (e.target.style.borderColor = BORDER)}
+                      style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: TEXT, fontFamily: FT, fontSize: 15, padding: "13px 12px 13px 2px", minWidth: 0 }}
                     />
                   </div>
-                  <span style={{ fontFamily: FT, fontSize: 13, color: MUTED, flexShrink: 0 }}>–</span>
-                  <div style={{ flex: 1, position: "relative" }}>
-                    <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", fontFamily: FT, fontSize: 14, color: MUTED, pointerEvents: "none" }}>₱</span>
+                  <span style={{ fontFamily: FT, fontSize: 14, color: MUTED, flexShrink: 0 }}>to</span>
+                  {/* Max */}
+                  <div style={{
+                    flex: 1, display: "flex", alignItems: "center",
+                    border: `1px solid ${BORDER}`, borderRadius: 12, background: "#080808",
+                    overflow: "hidden", minWidth: 0,
+                  }}>
+                    <span style={{ padding: "13px 4px 13px 14px", fontFamily: FT, fontSize: 15, color: MUTED, flexShrink: 0, userSelect: "none" }}>₱</span>
                     <input
                       type="text" inputMode="numeric" pattern="[0-9]*"
                       value={rateMax} onChange={(e) => setRateMax(e.target.value.replace(/\D/g, ""))}
                       placeholder="Max"
-                      style={{ ...inputStyle, paddingLeft: 28, color: TEXT, fontSize: 15 }}
-                      onFocus={(e) => (e.target.style.borderColor = "rgba(255,179,0,0.4)")}
-                      onBlur={(e)  => (e.target.style.borderColor = BORDER)}
+                      style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: TEXT, fontFamily: FT, fontSize: 15, padding: "13px 12px 13px 2px", minWidth: 0 }}
                     />
                   </div>
-                  <select value={rateUnit} onChange={(e) => setRateUnit(e.target.value)} style={{ ...selectBase, minWidth: 100, flexShrink: 0 }}>
-                    {RATE_UNITS.map((u) => <option key={u.id} value={u.id}>{u.label}</option>)}
-                  </select>
                 </div>
+                <select value={rateUnit} onChange={(e) => setRateUnit(e.target.value)} style={{ ...selectBase, width: "100%" }}>
+                  {RATE_UNITS.map((u) => <option key={u.id} value={u.id}>{u.label}</option>)}
+                </select>
                 {rateMin && rateMax && (
-                  <p style={{ fontFamily: FT, fontSize: 12, color: AMBER, marginTop: 6 }}>
+                  <p style={{ fontFamily: FT, fontSize: 12, color: AMBER, marginTop: 8 }}>
                     ₱{Number(rateMin).toLocaleString()} – ₱{Number(rateMax).toLocaleString()} / {RATE_UNITS.find(u => u.id === rateUnit)?.label ?? rateUnit}
                   </p>
                 )}

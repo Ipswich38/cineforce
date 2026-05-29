@@ -12,6 +12,14 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ---
 
+## [0.24.1-beta.1] — 2026-05-29
+
+### Fixed
+- **Messaging — recipient not receiving** — GET and POST handlers now use the admin client for all DB reads/writes after manually verifying user access; eliminates silent RLS empty-result failures that were blocking recipients from seeing messages. Same fix applied to the messages page last-message preview query.
+- **Rate inputs — unusable on mobile** — replaced absolutely-positioned ₱ overlay with an inline flex prefix inside the input border; inputs stack `Min / to / Max` on a single row with full width, unit selector moves to a full-width row below; live rate preview in amber below both fields.
+
+---
+
 ## [0.24.0-beta.1] — 2026-05-29
 
 ### Changed

@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { ROLES } from "@/lib/constants";
 import MessagesClient from "./MessagesClient";
 
@@ -29,12 +29,15 @@ export default async function MessagesPage() {
     list.map((c) => c.client_id === user.id ? c.crew_id : c.client_id)
   ));
 
+  const admin = createAdminClient();
+
   const [{ data: profiles }, { data: msgRows }] = await Promise.all([
     otherIds.length
       ? supabase.from("profiles").select("id, slug, display_name, avatar_url, role").in("id", otherIds)
       : Promise.resolve({ data: [] }),
+    // Use admin client so RLS never silently hides existing messages
     list.length
-      ? supabase.from("messages")
+      ? admin.from("messages")
           .select("connection_id, body, sender_id, created_at")
           .in("connection_id", list.map((c) => c.id))
           .order("created_at", { ascending: false })
