@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Send, CheckCircle2, Clock, Lock, UserCircle, Zap, MessageSquare } from "lucide-react";
 
@@ -32,12 +33,26 @@ export default function ConnectButton({
   isLoggedIn: boolean;
   isPremium: boolean;
 }) {
+  const router = useRouter();
+
   const [step,        setStep]        = useState<"idle" | "form" | "sent">(existingRequest ? "sent" : "idle");
   const [projectName, setProjectName] = useState("");
   const [message,     setMessage]     = useState("");
   const [loading,     setLoading]     = useState(false);
   const [error,       setError]       = useState("");
   const [reqStatus,   setReqStatus]   = useState(existingRequest?.status ?? "");
+
+  // Sync if server re-renders with updated status (e.g. after router.refresh())
+  useEffect(() => {
+    if (existingRequest?.status) setReqStatus(existingRequest.status);
+  }, [existingRequest?.status]);
+
+  // Auto-poll while pending so the button updates the moment crew accepts
+  useEffect(() => {
+    if (reqStatus !== "pending") return;
+    const id = setInterval(() => router.refresh(), 5000);
+    return () => clearInterval(id);
+  }, [reqStatus, router]);
 
   async function sendRequest() {
     if (!projectName.trim()) { setError("Please enter a project name."); return; }
@@ -154,9 +169,18 @@ export default function ConnectButton({
         <p style={{ fontFamily: FD, fontWeight: 600, fontSize: 15, color: TEXT, marginBottom: 6 }}>
           Request sent
         </p>
-        <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, lineHeight: 1.55 }}>
-          Waiting for approval.
+        <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, lineHeight: 1.55, marginBottom: 14 }}>
+          Waiting for {crewName.split(" ")[0]} to accept. This page checks automatically.
         </p>
+        <Link href="/messages"
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+            padding: "10px", borderRadius: 12,
+            background: "rgba(255,255,255,0.04)", border: `1px solid ${BORDER}`,
+            fontFamily: FT, fontSize: 13, color: MUTED, textDecoration: "none",
+          }}>
+          <MessageSquare size={13} /> Go to Messages
+        </Link>
       </div>
     );
   }

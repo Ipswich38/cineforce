@@ -1,6 +1,6 @@
 {
   "name": "cineverse",
-  "version": "0.20.1-beta.1",
+  "version": "0.20.2-beta.1",
   "private": true,
   "scripts": {
     "dev": "next dev",

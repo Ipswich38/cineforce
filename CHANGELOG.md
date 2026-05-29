@@ -12,6 +12,13 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ---
 
+## [0.20.2-beta.1] — 2026-05-29
+
+### Fixed
+- **ConnectButton pending state** — auto-polls every 5 s via `router.refresh()` so the button updates to "Request accepted / Open Messages" the moment the crew accepts, without needing a manual page reload. Added "Go to Messages" fallback link on the pending state.
+
+---
+
 ## [0.20.1-beta.1] — 2026-05-29
 
 ### Changed
