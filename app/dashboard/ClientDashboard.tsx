@@ -5,17 +5,22 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ROLES, PROJECT_TYPES } from "@/lib/constants";
-import { LogOut, Search, Heart, Inbox, ExternalLink, CheckCircle2, X, Clock, MessageSquare } from "lucide-react";
+import {
+  LogOut, Search, Heart, ExternalLink, Settings,
+  CheckCircle2, X, Clock, MessageSquare, ChevronDown,
+  Inbox, Users,
+} from "lucide-react";
 
 const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
 const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
 
 const BG      = "#000000";
-const SURFACE = "#101010";
+const SURFACE = "#0C0C0F";
+const CARD    = "#111114";
 const TEXT    = "#F7F7F2";
 const MUTED   = "#8E8E93";
 const AMBER   = "#FFCC00";
-const BORDER  = "rgba(255,255,255,0.07)";
+const BORDER  = "rgba(255,255,255,0.08)";
 
 export type CrewSnap = {
   id: string;
@@ -40,44 +45,47 @@ export type Favorite = {
   crew: CrewSnap | null;
 };
 
-const STATUS_COLORS: Record<string, string> = {
-  pending:  "#FF9F0A",
-  accepted: "#32D74B",
-  declined: "#FF453A",
-  skipped:  "#8E8E93",
+const STATUS_META: Record<string, { color: string; label: string; bg: string; Icon: React.ElementType }> = {
+  pending:  { color: "#FF9F0A", label: "Pending",          bg: "rgba(255,159,10,0.1)",  Icon: Clock         },
+  accepted: { color: "#32D74B", label: "Accepted",         bg: "rgba(50,215,75,0.1)",   Icon: CheckCircle2  },
+  declined: { color: "#FF453A", label: "Declined",         bg: "rgba(255,69,58,0.1)",   Icon: X             },
+  skipped:  { color: "#8E8E93", label: "Unable to commit", bg: "rgba(142,142,147,0.1)", Icon: Clock         },
 };
 
-const STATUS_LABELS: Record<string, string> = {
-  pending:  "Pending",
-  accepted: "Accepted",
-  declined: "Declined",
-  skipped:  "Unable to commit",
-};
-
-function StatusBadge({ status }: { status: string }) {
-  const color = STATUS_COLORS[status] ?? MUTED;
+function CrewAvatar({ name, size = 44 }: { name: string; size?: number }) {
+  const initials = name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase() || "?";
+  const colors = ["#4A9EFF", "#32D74B", "#AF52DE", "#FF6B35", "#FF9F0A"];
+  const color = colors[name.charCodeAt(0) % colors.length];
   return (
-    <span style={{
-      flexShrink: 0, fontFamily: FT, fontSize: 11, fontWeight: 600,
-      padding: "3px 10px", borderRadius: 20,
-      background: `${color}18`, color,
+    <div style={{
+      width: size, height: size, borderRadius: "50%", flexShrink: 0,
+      background: `${color}18`, border: `1.5px solid ${color}35`,
+      display: "flex", alignItems: "center", justifyContent: "center",
     }}>
-      {STATUS_LABELS[status] ?? status}
-    </span>
+      <span style={{ fontFamily: FD, fontWeight: 700, fontSize: Math.floor(size * 0.36), color }}>
+        {initials}
+      </span>
+    </div>
   );
 }
 
-function StatusIcon({ status }: { status: string }) {
-  if (status === "accepted") return <CheckCircle2 size={14} style={{ color: "#32D74B", flexShrink: 0 }} />;
-  if (status === "declined") return <X size={14} style={{ color: "#FF453A", flexShrink: 0 }} />;
-  return <Clock size={14} style={{ color: "#FF9F0A", flexShrink: 0 }} />;
+function ProfileAvatar({ name, size = 64 }: { name: string; size?: number }) {
+  const initials = name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase() || "?";
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: "50%", flexShrink: 0,
+      background: "rgba(255,204,0,0.1)", border: "2px solid rgba(255,204,0,0.28)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+    }}>
+      <span style={{ fontFamily: FD, fontWeight: 800, fontSize: Math.floor(size * 0.34), color: AMBER }}>
+        {initials}
+      </span>
+    </div>
+  );
 }
 
 export default function ClientDashboard({
-  profile,
-  sentRequests,
-  favorites,
-  userEmail,
+  profile, sentRequests, favorites, userEmail,
 }: {
   profile: Record<string, unknown>;
   sentRequests: SentRequest[];
@@ -86,13 +94,14 @@ export default function ClientDashboard({
 }) {
   const router = useRouter();
   const supabase = createClient();
+
   const [activeTab,  setActiveTab]  = useState<"requests" | "saved">("requests");
   const [signingOut, setSigningOut] = useState(false);
   const [savedList,  setSavedList]  = useState<Favorite[]>(favorites);
 
-  const displayName    = (profile?.display_name  as string | undefined) ?? userEmail.split("@")[0];
-  const company        = (profile?.company        as string | null) ?? null;
-  const city           = (profile?.city           as string | null) ?? null;
+  const displayName    = (profile?.display_name   as string | undefined) ?? userEmail.split("@")[0];
+  const company        = (profile?.company         as string | null) ?? null;
+  const city           = (profile?.city            as string | null) ?? null;
   const productionType = (profile?.production_type as string | null) ?? null;
   const ptLabel        = PROJECT_TYPES.find((p) => p.id === productionType)?.label ?? null;
 
@@ -117,95 +126,109 @@ export default function ClientDashboard({
   return (
     <div className="mobile-nav-pad" style={{ background: BG, minHeight: "100dvh" }}>
 
-      {/* Header */}
+      {/* ── Top bar ── */}
       <div style={{
-        background: "rgba(10,10,12,0.96)",
+        background: "rgba(8,8,10,0.96)",
         backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
         borderBottom: `1px solid ${BORDER}`,
         position: "sticky", top: 0, zIndex: 40,
         paddingTop: "env(safe-area-inset-top, 0px)",
       }}>
         <div className="app-container-narrow topbar-inner">
-          <Link href="/" style={{ fontFamily: FD, fontWeight: 700, fontSize: 17, color: TEXT, letterSpacing: "-0.02em" }}>
+          <Link href="/" style={{ fontFamily: FD, fontWeight: 800, fontSize: 17, color: TEXT, letterSpacing: "-0.03em", textDecoration: "none" }}>
             CineVerse
           </Link>
-          <Link href="/help"
-            style={{ fontFamily: FT, fontSize: 13, color: MUTED, textDecoration: "none" }}
-            className="hover:opacity-70 transition-opacity hidden sm:block">
-            Help
-          </Link>
-          <Link href="/settings"
-            style={{ fontFamily: FT, fontSize: 13, color: MUTED, textDecoration: "none" }}
-            className="hover:opacity-70 transition-opacity hidden sm:block">
-            Settings
-          </Link>
-          <button onClick={signOut} disabled={signingOut}
-            style={{
-              background: "none", border: "none", cursor: "pointer",
-              color: signingOut ? MUTED : "#FF453A",
-              display: "flex", alignItems: "center", gap: 5,
-              fontFamily: FT, fontSize: 13,
-            }}>
-            <LogOut size={14} />
-            <span className="hidden sm:inline">Sign out</span>
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <Link href="/settings"
+              style={{
+                background: "rgba(255,255,255,0.05)", border: `1px solid ${BORDER}`,
+                borderRadius: 10, padding: "7px 10px",
+                display: "flex", alignItems: "center", color: MUTED, textDecoration: "none",
+              }}>
+              <Settings size={16} />
+            </Link>
+            <button onClick={signOut} disabled={signingOut}
+              style={{
+                background: "rgba(255,69,58,0.08)", border: "1px solid rgba(255,69,58,0.2)",
+                borderRadius: 10, padding: "7px 10px",
+                cursor: "pointer", color: "#FF453A",
+                display: "flex", alignItems: "center", gap: 5,
+                fontFamily: FT, fontSize: 13, fontWeight: 500,
+              }}>
+              <LogOut size={15} />
+              <span className="hidden sm:inline">Sign out</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="app-container-narrow app-page-pad">
+      <div className="app-container-narrow" style={{ padding: "20px 16px 32px" }}>
 
-        {/* Profile summary */}
-        <div style={{ marginBottom: 24 }}>
-          <h1 style={{
-            fontFamily: FD, fontWeight: 700,
-            fontSize: "clamp(1.5rem, 4vw, 2rem)",
-            color: TEXT, letterSpacing: "-0.025em", marginBottom: 4,
-          }}>
-            {displayName.split(" ")[0]}
-          </h1>
-          <p style={{ fontFamily: FT, fontSize: 14, color: MUTED, marginBottom: company || city ? 6 : 0 }}>
-            {[company, city, ptLabel].filter(Boolean).join(" · ")}
-          </p>
+        {/* ── Profile card ── */}
+        <div style={{
+          background: CARD, border: `1px solid ${BORDER}`,
+          borderRadius: 20, padding: "20px", marginBottom: 16,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 18 }}>
+            <ProfileAvatar name={displayName} size={64} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h1 style={{ fontFamily: FD, fontWeight: 800, fontSize: 20, color: TEXT, letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 4 }}>
+                {displayName}
+              </h1>
+              <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {[company, city, ptLabel].filter(Boolean).join(" · ") || "Hirer"}
+              </p>
+            </div>
+          </div>
+
+          {/* Quick actions */}
+          <div style={{ display: "flex", gap: 8 }}>
+            <Link href="/search"
+              style={{
+                flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+                padding: "12px 14px", borderRadius: 12,
+                background: AMBER, color: "#000",
+                fontFamily: FT, fontSize: 14, fontWeight: 700,
+                textDecoration: "none",
+                boxShadow: "0 2px 16px rgba(255,204,0,0.2)",
+              }}>
+              <Search size={15} /> Find Crew
+            </Link>
+            <Link href="/messages"
+              style={{
+                flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+                padding: "12px 14px", borderRadius: 12,
+                background: "rgba(255,255,255,0.05)", border: `1px solid ${BORDER}`,
+                color: TEXT, fontFamily: FT, fontSize: 14, fontWeight: 600,
+                textDecoration: "none",
+              }}>
+              <MessageSquare size={15} /> Messages
+            </Link>
+          </div>
         </div>
 
-        {/* Browse CTA */}
-        <Link href="/search"
-          style={{
-            display: "flex", alignItems: "center", gap: 10,
-            padding: "14px 18px", borderRadius: 14, marginBottom: 24,
-            background: "rgba(255,204,0,0.07)", border: "1px solid rgba(255,204,0,0.18)",
-            textDecoration: "none",
-          }}
-          className="transition-all hover:bg-amber-400/10 active:scale-[0.99]">
-          <Search size={16} style={{ color: AMBER, flexShrink: 0 }} />
-          <div style={{ flex: 1 }}>
-            <p style={{ fontFamily: FT, fontSize: 14, fontWeight: 600, color: AMBER }}>Browse Crew</p>
-            <p style={{ fontFamily: FT, fontSize: 12, color: MUTED, marginTop: 1 }}>Find and connect with film and media professionals.</p>
-          </div>
-        </Link>
-
-        {/* Tabs */}
+        {/* ── Tab bar ── */}
         <div style={{
-          display: "flex",
+          display: "flex", gap: 4,
           background: "rgba(255,255,255,0.04)",
-          borderRadius: 12, padding: 4, marginBottom: 24, gap: 3,
+          borderRadius: 14, padding: 4, marginBottom: 20,
         }}>
           {([
-            { id: "requests" as const, label: pending.length > 0 ? `Requests (${pending.length})` : "Requests" },
-            { id: "saved"    as const, label: savedList.length > 0 ? `Saved (${savedList.length})` : "Saved" },
-          ]).map(({ id, label }) => (
+            { id: "requests" as const, label: pending.length > 0 ? `Requests (${pending.length})` : "Requests", dot: pending.length > 0 },
+            { id: "saved"    as const, label: savedList.length > 0 ? `Saved (${savedList.length})` : "Saved", dot: false },
+          ]).map(({ id, label, dot }) => (
             <button key={id} onClick={() => setActiveTab(id)}
               style={{
-                flex: 1, padding: "10px 8px", borderRadius: 9, border: "none", cursor: "pointer",
+                flex: 1, padding: "10px 8px", borderRadius: 10, border: "none", cursor: "pointer",
                 background: activeTab === id ? SURFACE : "transparent",
                 color: activeTab === id ? TEXT : MUTED,
                 fontFamily: FT, fontSize: 14, fontWeight: activeTab === id ? 600 : 400,
-                boxShadow: activeTab === id ? "0 1px 4px rgba(0,0,0,0.4)" : "none",
+                boxShadow: activeTab === id ? "0 1px 6px rgba(0,0,0,0.5)" : "none",
                 transition: "all 0.15s", position: "relative",
               }}>
-              {id === "requests" && pending.length > 0 && activeTab !== "requests" && (
+              {dot && activeTab !== id && (
                 <span style={{
-                  position: "absolute", top: 8, right: 14,
+                  position: "absolute", top: 9, right: 16,
                   width: 6, height: 6, borderRadius: "50%", background: "#FF9F0A",
                 }} />
               )}
@@ -214,107 +237,142 @@ export default function ClientDashboard({
           ))}
         </div>
 
-        {/* ── Requests tab ── */}
+        {/* ══ REQUESTS tab ══ */}
         {activeTab === "requests" && (
           <div>
             {sentRequests.length === 0 ? (
               <div style={{
-                textAlign: "center", padding: "52px 24px",
-                background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 16,
+                textAlign: "center", padding: "56px 24px",
+                background: CARD, border: `1px solid ${BORDER}`, borderRadius: 20,
               }}>
                 <div style={{
-                  width: 56, height: 56, borderRadius: "50%", margin: "0 auto 16px",
+                  width: 60, height: 60, borderRadius: "50%", margin: "0 auto 18px",
                   background: "rgba(255,255,255,0.04)", border: `1px solid ${BORDER}`,
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
-                  <Inbox size={22} style={{ color: MUTED }} />
+                  <Inbox size={24} style={{ color: MUTED }} />
                 </div>
-                <p style={{ fontFamily: FD, fontWeight: 600, fontSize: 16, color: TEXT, marginBottom: 6 }}>No requests yet</p>
-                <p style={{ fontFamily: FT, fontSize: 14, color: MUTED, lineHeight: 1.6, maxWidth: 240, margin: "0 auto" }}>
-                  Connect with crew from their profile page and your requests will appear here.
+                <p style={{ fontFamily: FD, fontWeight: 700, fontSize: 17, color: TEXT, marginBottom: 7 }}>No requests yet</p>
+                <p style={{ fontFamily: FT, fontSize: 14, color: MUTED, lineHeight: 1.6, maxWidth: 260, margin: "0 auto 20px" }}>
+                  Browse crew and send a project request to get started.
                 </p>
+                <Link href="/search"
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: 7,
+                    padding: "12px 20px", borderRadius: 999,
+                    background: AMBER, color: "#000",
+                    fontFamily: FT, fontSize: 14, fontWeight: 700, textDecoration: "none",
+                  }}>
+                  <Users size={14} /> Browse Crew
+                </Link>
               </div>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {sentRequests.map((req) => {
                   const date = new Date(req.created_at).toLocaleDateString("en-PH", { month: "short", day: "numeric" });
+                  const meta = STATUS_META[req.status] ?? STATUS_META.pending;
+                  const StatusIcon = meta.Icon;
                   return (
                     <div key={req.id} style={{
-                      background: SURFACE, border: `1px solid ${BORDER}`,
-                      borderRadius: 14, padding: "14px 16px",
+                      background: CARD, border: `1px solid ${BORDER}`,
+                      borderRadius: 16, overflow: "hidden",
                     }}>
-                      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: req.crew ? 10 : 0 }}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <p style={{ fontFamily: FD, fontWeight: 600, fontSize: 15, color: TEXT, lineHeight: 1.3, marginBottom: 3 }}>
-                            {req.project_title}
-                          </p>
-                          <p style={{ fontFamily: FT, fontSize: 12, color: MUTED }}>{date}</p>
+                      {/* Thread header */}
+                      <div style={{ padding: "14px 16px 0" }}>
+                        <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 12 }}>
+                          {req.crew ? (
+                            <CrewAvatar name={req.crew.display_name} size={46} />
+                          ) : (
+                            <div style={{
+                              width: 46, height: 46, borderRadius: "50%", flexShrink: 0,
+                              background: "rgba(255,255,255,0.05)", border: `1px solid ${BORDER}`,
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                            }}>
+                              <Users size={18} style={{ color: MUTED }} />
+                            </div>
+                          )}
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
+                              <p style={{ fontFamily: FD, fontWeight: 700, fontSize: 15, color: TEXT, lineHeight: 1.25, flex: 1 }}>
+                                {req.project_title}
+                              </p>
+                              <span style={{ fontFamily: FT, fontSize: 11, color: MUTED, flexShrink: 0, marginTop: 1 }}>{date}</span>
+                            </div>
+                            {req.crew && (
+                              <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, marginTop: 3 }}>
+                                {req.crew.display_name} · {roleLabel(req.crew.role)} · {req.crew.city}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          <StatusIcon status={req.status} />
-                          <StatusBadge status={req.status} />
-                        </div>
-                      </div>
 
-                      {req.crew && (
-                        <Link href={`/crew/${req.crew.slug}`}
-                          style={{
-                            display: "flex", alignItems: "center", justifyContent: "space-between",
-                            padding: "9px 12px", borderRadius: 10,
+                        {/* Message preview */}
+                        {req.message && (
+                          <div style={{
                             background: "rgba(255,255,255,0.03)", border: `1px solid ${BORDER}`,
-                            textDecoration: "none",
-                          }}
-                          className="hover:bg-white/[0.05] transition-colors">
-                          <div>
-                            <p style={{ fontFamily: FT, fontSize: 13, fontWeight: 500, color: TEXT }}>
-                              {req.crew.display_name}
-                            </p>
-                            <p style={{ fontFamily: FT, fontSize: 11, color: MUTED, marginTop: 1 }}>
-                              {roleLabel(req.crew.role)} &middot; {req.crew.city}
+                            borderRadius: 10, padding: "9px 12px", marginBottom: 12,
+                          }}>
+                            <p style={{ fontFamily: FT, fontSize: 13, color: "rgba(247,247,242,0.55)", lineHeight: 1.6, fontStyle: "italic" }}>
+                              "{req.message}"
                             </p>
                           </div>
-                          <ExternalLink size={12} style={{ color: MUTED, flexShrink: 0 }} />
-                        </Link>
-                      )}
+                        )}
 
-                      {req.message && (
-                        <p style={{
-                          fontFamily: FT, fontSize: 13, color: "rgba(247,247,242,0.5)",
-                          lineHeight: 1.6, marginTop: 10,
-                          padding: "8px 10px", borderRadius: 8,
-                          background: "rgba(255,255,255,0.02)",
-                          borderLeft: "2px solid rgba(255,255,255,0.08)",
+                        {req.status === "skipped" && (
+                          <div style={{
+                            background: "rgba(255,255,255,0.03)", border: `1px solid ${BORDER}`,
+                            borderRadius: 10, padding: "9px 12px", marginBottom: 12,
+                          }}>
+                            <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, lineHeight: 1.6 }}>
+                              This crew member was extended on an ongoing project and can't commit right now.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Footer: status + action */}
+                      <div style={{
+                        display: "flex", alignItems: "center", justifyContent: "space-between",
+                        padding: "10px 16px 14px", gap: 10,
+                      }}>
+                        <div style={{
+                          display: "inline-flex", alignItems: "center", gap: 6,
+                          padding: "5px 12px", borderRadius: 999,
+                          background: meta.bg,
                         }}>
-                          {req.message}
-                        </p>
-                      )}
+                          <StatusIcon size={12} style={{ color: meta.color, flexShrink: 0 }} />
+                          <span style={{ fontFamily: FT, fontSize: 12, fontWeight: 600, color: meta.color }}>
+                            {meta.label}
+                          </span>
+                        </div>
 
-                      {req.status === "skipped" && (
-                        <p style={{
-                          fontFamily: FT, fontSize: 13, color: "rgba(247,247,242,0.58)",
-                          lineHeight: 1.6, marginTop: 10,
-                          padding: "9px 11px", borderRadius: 9,
-                          background: "rgba(255,255,255,0.035)",
-                          border: `1px solid ${BORDER}`,
-                        }}>
-                          This crew member was extended on an on-going project and can&apos;t commit to your schedule right now.
-                        </p>
-                      )}
-
-                      {req.status === "accepted" && (
-                        <Link href={`/messages?thread=${req.id}`}
-                          style={{
-                            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                            padding: "10px", borderRadius: 10, marginTop: 10,
-                            background: "rgba(255,204,0,0.07)", border: "1px solid rgba(255,204,0,0.18)",
-                            fontFamily: FT, fontSize: 13, fontWeight: 600, color: AMBER,
-                            textDecoration: "none",
-                          }}
-                          className="hover:bg-amber-400/10 transition-colors">
-                          <MessageSquare size={14} />
-                          Open Chat
-                        </Link>
-                      )}
+                        <div style={{ display: "flex", gap: 7 }}>
+                          {req.crew && (
+                            <Link href={`/crew/${req.crew.slug}`}
+                              style={{
+                                display: "flex", alignItems: "center", gap: 5,
+                                padding: "6px 12px", borderRadius: 20,
+                                background: "rgba(255,255,255,0.05)", border: `1px solid ${BORDER}`,
+                                fontFamily: FT, fontSize: 12, fontWeight: 500, color: MUTED,
+                                textDecoration: "none",
+                              }}>
+                              <ExternalLink size={11} /> Profile
+                            </Link>
+                          )}
+                          {req.status === "accepted" && (
+                            <Link href={`/messages?thread=${req.id}`}
+                              style={{
+                                display: "flex", alignItems: "center", gap: 5,
+                                padding: "6px 14px", borderRadius: 20,
+                                background: "rgba(255,204,0,0.1)", border: "1px solid rgba(255,204,0,0.25)",
+                                fontFamily: FT, fontSize: 12, fontWeight: 700, color: AMBER,
+                                textDecoration: "none",
+                              }}>
+                              <MessageSquare size={11} /> Open Chat
+                            </Link>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   );
                 })}
@@ -323,22 +381,22 @@ export default function ClientDashboard({
           </div>
         )}
 
-        {/* ── Saved tab ── */}
+        {/* ══ SAVED tab ══ */}
         {activeTab === "saved" && (
           <div>
             {savedList.length === 0 ? (
               <div style={{
-                textAlign: "center", padding: "52px 24px",
-                background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 16,
+                textAlign: "center", padding: "56px 24px",
+                background: CARD, border: `1px solid ${BORDER}`, borderRadius: 20,
               }}>
                 <div style={{
-                  width: 56, height: 56, borderRadius: "50%", margin: "0 auto 16px",
+                  width: 60, height: 60, borderRadius: "50%", margin: "0 auto 18px",
                   background: "rgba(255,255,255,0.04)", border: `1px solid ${BORDER}`,
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
-                  <Heart size={22} style={{ color: MUTED }} />
+                  <Heart size={24} style={{ color: MUTED }} />
                 </div>
-                <p style={{ fontFamily: FD, fontWeight: 600, fontSize: 16, color: TEXT, marginBottom: 6 }}>No saved crew yet</p>
+                <p style={{ fontFamily: FD, fontWeight: 700, fontSize: 17, color: TEXT, marginBottom: 7 }}>No saved crew</p>
                 <p style={{ fontFamily: FT, fontSize: 14, color: MUTED, lineHeight: 1.6, maxWidth: 240, margin: "0 auto" }}>
                   Tap the heart on any crew profile to save them for later.
                 </p>
@@ -350,32 +408,34 @@ export default function ClientDashboard({
                   return (
                     <div key={fav.id} style={{
                       display: "flex", alignItems: "center", gap: 12,
-                      background: SURFACE, border: `1px solid ${BORDER}`,
+                      background: CARD, border: `1px solid ${BORDER}`,
                       borderRadius: 14, padding: "12px 14px",
                     }}>
-                      <Link href={`/crew/${fav.crew.slug}`}
-                        style={{ flex: 1, minWidth: 0, textDecoration: "none" }}>
-                        <p style={{ fontFamily: FT, fontSize: 14, fontWeight: 500, color: TEXT, marginBottom: 2 }}>
+                      <CrewAvatar name={fav.crew.display_name} size={46} />
+                      <Link href={`/crew/${fav.crew.slug}`} style={{ flex: 1, minWidth: 0, textDecoration: "none" }}>
+                        <p style={{ fontFamily: FT, fontSize: 14, fontWeight: 600, color: TEXT, marginBottom: 2 }}>
                           {fav.crew.display_name}
                         </p>
                         <p style={{ fontFamily: FT, fontSize: 12, color: MUTED }}>
-                          {roleLabel(fav.crew.role)} &middot; {fav.crew.city}
+                          {roleLabel(fav.crew.role)} · {fav.crew.city}
                         </p>
                       </Link>
                       <Link href={`/crew/${fav.crew.slug}`}
-                        style={{ color: "#4A9EFF", flexShrink: 0 }}
-                        className="hover:opacity-70 transition-opacity">
-                        <ExternalLink size={14} />
+                        style={{
+                          padding: "7px 10px", borderRadius: 10,
+                          background: "rgba(74,158,255,0.07)", border: "1px solid rgba(74,158,255,0.2)",
+                          color: "#4A9EFF", flexShrink: 0, display: "flex",
+                        }}>
+                        <ExternalLink size={13} />
                       </Link>
                       <button
                         onClick={() => removeFavorite(fav.id)}
                         style={{
-                          background: "rgba(255,69,58,0.08)", border: "1px solid rgba(255,69,58,0.18)",
-                          borderRadius: 8, padding: "6px 8px", cursor: "pointer",
-                          display: "flex", alignItems: "center", justifyContent: "center",
+                          padding: "7px 10px", borderRadius: 10,
+                          background: "rgba(255,69,58,0.07)", border: "1px solid rgba(255,69,58,0.18)",
+                          cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
                           flexShrink: 0,
-                        }}
-                        className="hover:bg-red-500/20 transition-colors">
+                        }}>
                         <Heart size={13} style={{ color: "#FF453A", fill: "#FF453A" }} />
                       </button>
                     </div>

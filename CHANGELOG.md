@@ -12,6 +12,13 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ---
 
+## [0.21.0-beta.1] — 2026-05-29
+
+### Changed
+- **Dashboard redesign (crew + hirer)** — Airbnb/Messenger-inspired UI: large profile avatar card at top, messenger-style request threads with avatars and message bubbles, pill status badges with icons, prominent Accept/Skip action buttons, Quick Actions row (Find Crew + Messages), Settings and Sign-out moved to icon buttons in the top bar.
+
+---
+
 ## [0.20.2-beta.1] — 2026-05-29
 
 ### Fixed
