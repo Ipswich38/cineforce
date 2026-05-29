@@ -28,6 +28,11 @@ create table if not exists profiles (
   rate_unit        text default 'day' check (rate_unit in ('day','half','hour','project')),
   portfolio_url    text,
   showreel_url     text,
+  tiktok_url       text,
+  instagram_url    text,
+  linkedin_url     text,
+  facebook_url     text,
+  secondary_roles  text[] default '{}',
   premium_status        text not null default 'free' check (premium_status in ('free','requested','active')),
   premium_requested_at  timestamptz,
   premium_activated_at  timestamptz,
@@ -105,6 +110,8 @@ create table if not exists contact_details (
   email         text,
   facebook_url  text,
   instagram_url text,
+  viber         text,
+  whatsapp      text,
   created_at    timestamptz default now(),
   updated_at    timestamptz default now()
 );
