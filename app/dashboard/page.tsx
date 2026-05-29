@@ -11,6 +11,7 @@ export default async function DashboardPage() {
   if (!user) redirect("/auth");
 
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+  if (!profile) redirect("/join");
 
   const subStatus = profile ? computeStatus(profile) : "expired";
   const daysLeft  = profile ? trialDaysLeft(profile.trial_started_at) : 0;

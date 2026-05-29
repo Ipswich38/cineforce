@@ -117,10 +117,16 @@ function FocusInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
 
 export default function JoinPage() {
   const router = useRouter();
+  const initialType = (() => {
+    if (typeof window === "undefined") return null;
+    const type = new URLSearchParams(window.location.search).get("type");
+    return type === "crew" || type === "client" ? type : null;
+  })();
 
   const [checking,   setChecking]   = useState(true);
   const [userId,     setUserId]     = useState<string | null>(null);
   const [step,       setStep]       = useState<"code" | "pick" | "crew" | "client">("code");
+  const [requestedType] = useState<"crew" | "client" | null>(initialType);
   const [inviteCode, setInviteCode] = useState("");
   const [codeError,  setCodeError]  = useState("");
   const [validating, setValidating] = useState(false);
@@ -152,10 +158,13 @@ export default function JoinPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    const type = new URLSearchParams(window.location.search).get("type");
+
     const sb = createClient();
     sb.auth.getSession().then(({ data: { session } }) => {
       if (!session?.user) {
-        router.replace("/auth?intent=join&next=/join");
+        const suffix = type === "crew" || type === "client" ? `?type=${type}` : "";
+        router.replace(`/auth?intent=join&next=${encodeURIComponent(`/join${suffix}`)}`);
         return;
       }
       setUserId(session.user.id);
@@ -267,7 +276,7 @@ export default function JoinPage() {
       body: JSON.stringify({ code: inviteCode.trim() }),
     });
     if (res.ok) {
-      setStep("pick");
+      setStep(requestedType ?? "pick");
     } else {
       const body = await res.json() as { error?: string };
       setCodeError(body.error ?? "Invalid invite code.");

@@ -4,7 +4,7 @@ import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { ArrowLeft, Clapperboard } from "lucide-react";
+import { ArrowLeft, BriefcaseBusiness, Clapperboard, Users } from "lucide-react";
 import LegalModal, { hasAgreedToTerms, recordAgreement } from "@/components/LegalModal";
 
 const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
@@ -33,12 +33,20 @@ function AuthPageInner() {
   const nextParam = searchParams.get("next");
 
   const [tab,     setTab]     = useState<"signin" | "join">(intent === "join" ? "join" : "signin");
+  const [accountType, setAccountType] = useState<"client" | "crew" | "">("");
   const [error,   setError]   = useState("");
   const [showLegal,     setShowLegal]     = useState(false);
   const [pendingAction, setPendingAction] = useState<"google" | null>(null);
 
   function dest() {
-    return nextParam ?? (tab === "join" ? "/join" : "/dashboard");
+    if (nextParam) {
+      if (tab === "join" && accountType && nextParam.startsWith("/join") && !nextParam.includes("type=")) {
+        return `${nextParam}${nextParam.includes("?") ? "&" : "?"}type=${accountType}`;
+      }
+      return nextParam;
+    }
+    if (tab === "join") return accountType ? `/join?type=${accountType}` : "/join";
+    return "/dashboard";
   }
 
   async function doGoogleAuth() {
@@ -50,6 +58,10 @@ function AuthPageInner() {
   }
 
   async function handleGoogleAuth() {
+    if (tab === "join" && !accountType) {
+      setError("Choose whether you are hiring or joining as crew.");
+      return;
+    }
     if (hasAgreedToTerms()) {
       await doGoogleAuth();
     } else {
@@ -147,12 +159,12 @@ function AuthPageInner() {
                 </div>
 
                 <h1 style={{ fontFamily: FD, fontWeight: 700, fontSize: "clamp(22px,5vw,28px)", color: TEXT, letterSpacing: "-0.028em", marginBottom: 6 }}>
-                  {tab === "signin" ? "Welcome back" : "Join the crew"}
+                  {tab === "signin" ? "Welcome back" : "Create your account"}
                 </h1>
                 <p style={{ fontFamily: FT, fontSize: 15, color: MUTED, lineHeight: 1.55, marginBottom: 28 }}>
                   {tab === "signin"
                     ? "Manage your card and incoming requests."
-                    : "Your next set is a tap away. Build your card now."}
+                    : "Choose how you plan to use CineVerse before signing up."}
                 </p>
 
                 {error && (
@@ -162,6 +174,60 @@ function AuthPageInner() {
                     marginBottom: 16,
                   }}>
                     <p style={{ fontFamily: FT, fontSize: 13, color: "#FF453A" }}>{error}</p>
+                  </div>
+                )}
+
+                {tab === "join" && (
+                  <div style={{ display: "grid", gap: 10, marginBottom: 16 }}>
+                    {([
+                      {
+                        id: "client" as const,
+                        icon: BriefcaseBusiness,
+                        title: "I'm hiring",
+                        desc: "Find crew, send project requests, and manage replies.",
+                      },
+                      {
+                        id: "crew" as const,
+                        icon: Users,
+                        title: "I'm crew",
+                        desc: "Build your public card and receive gig requests.",
+                      },
+                    ]).map((item) => {
+                      const Icon = item.icon;
+                      const active = accountType === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => { setAccountType(item.id); setError(""); }}
+                          style={{
+                            display: "flex", alignItems: "center", gap: 12,
+                            width: "100%", padding: "13px 14px", borderRadius: 14,
+                            border: `1px solid ${active ? "rgba(255,204,0,0.5)" : BORDER}`,
+                            background: active ? "rgba(255,204,0,0.09)" : "rgba(255,255,255,0.035)",
+                            color: TEXT, textAlign: "left", cursor: "pointer",
+                          }}
+                          className="transition-all hover:bg-white/[0.06] active:scale-[0.99]">
+                          <span style={{
+                            width: 34, height: 34, borderRadius: 10,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            background: active ? AMBER : "rgba(255,255,255,0.06)",
+                            color: active ? "#000" : MUTED,
+                            flexShrink: 0,
+                          }}>
+                            <Icon size={17} />
+                          </span>
+                          <span style={{ flex: 1 }}>
+                            <span style={{ display: "block", fontFamily: FD, fontWeight: 700, fontSize: 14, color: active ? AMBER : TEXT }}>
+                              {item.title}
+                            </span>
+                            <span style={{ display: "block", fontFamily: FT, fontSize: 12, color: MUTED, lineHeight: 1.45, marginTop: 2 }}>
+                              {item.desc}
+                            </span>
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
 
