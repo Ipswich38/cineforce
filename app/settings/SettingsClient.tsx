@@ -694,7 +694,7 @@ export default function SettingsClient({
                         {new Date(b.created_at).toLocaleDateString("en-PH", { month: "long", day: "numeric", year: "numeric" })}
                       </p>
                     </div>
-                    <Link href={`/chat/${b.id}`}
+                    <Link href={`/messages?thread=${b.id}`}
                       style={{
                         display: "flex", alignItems: "center", gap: 4, flexShrink: 0,
                         padding: "6px 12px", borderRadius: 8, marginLeft: 12,

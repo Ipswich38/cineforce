@@ -12,6 +12,16 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ---
 
+## [0.20.0-beta.1] — 2026-05-29
+
+### Changed
+- **Messaging rebuilt from scratch** — replaced WebSocket-based chat with Airbnb-style split-view inbox; polling every 3 s replaces Supabase Realtime (no JWT/WebSocket reliability issues).
+- **Split-view layout** — desktop shows conversation list (left) + chat (right) side-by-side; mobile stacks them full-screen with back navigation.
+- **System message** — top of each chat thread shows an amber "Connection Accepted" card with both parties' names and project title.
+- **`/chat/[id]` retired** — all chat links now point to `/messages?thread=<id>`; old route redirects automatically.
+
+---
+
 ## [0.19.1-beta.1] — 2026-05-29
 
 ### Fixed

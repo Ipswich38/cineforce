@@ -302,7 +302,7 @@ export default function ClientDashboard({
                       )}
 
                       {req.status === "accepted" && (
-                        <Link href={`/chat/${req.id}`}
+                        <Link href={`/messages?thread=${req.id}`}
                           style={{
                             display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
                             padding: "10px", borderRadius: 10, marginTop: 10,

@@ -421,7 +421,7 @@ export default function DashboardClient({
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
                           {req.status === "accepted" && (
-                            <Link href={`/chat/${req.id}`}
+                            <Link href={`/messages?thread=${req.id}`}
                               style={{
                                 display: "flex", alignItems: "center", gap: 4,
                                 padding: "4px 10px", borderRadius: 8,

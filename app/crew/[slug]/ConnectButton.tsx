@@ -132,7 +132,7 @@ export default function ConnectButton({
         <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, marginBottom: 14 }}>
           Continue in chat to confirm the project details. Contact details stay private until everything is final.
         </p>
-        <Link href={`/chat/${existingRequest?.id}`}
+        <Link href={`/messages?thread=${existingRequest?.id}`}
           style={{
             display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
             padding: "13px", borderRadius: 14,
