@@ -25,7 +25,7 @@ const DIVIDER = "rgba(255,255,255,0.05)";
 
 
 /* ─── Nav ─── */
-function Nav() {
+function Nav({ onHowClick }: { onHowClick: () => void }) {
   const [scrolled,  setScrolled]  = useState(false);
   const [menuOpen,  setMenuOpen]  = useState(false);
 
@@ -74,6 +74,13 @@ function Nav() {
                 style={{ fontFamily: FT, fontSize: 14, color: MUTED }}
                 className="transition-colors hover:text-white">{label}</Link>
             ))}
+            <button
+              type="button"
+              onClick={onHowClick}
+              style={{ fontFamily: FT, fontSize: 14, color: MUTED, background: "none", border: "none", cursor: "pointer", padding: 0 }}
+              className="transition-colors hover:text-white">
+              How it works
+            </button>
           </nav>
 
           {/* Right controls */}
@@ -146,6 +153,7 @@ function Nav() {
               {[
                 { href: "/search", label: "Find crew", emoji: "🔍", action: () => setMenuOpen(false) },
                 { href: "/about", label: "About", emoji: "▰", action: () => setMenuOpen(false) },
+                { href: "#how", label: "How it works", emoji: "◌", action: () => { setMenuOpen(false); onHowClick(); } },
               ].map(({ href, label, emoji, action }) => (
                 <a key={label} href={href}
                   onClick={(e) => { e.preventDefault(); action(); }}
@@ -685,7 +693,7 @@ export default function HomePage() {
 
   return (
     <div className="mobile-nav-pad" style={{ background: BG, minHeight: "100dvh", overflowX: "hidden" }}>
-      <Nav />
+      <Nav onHowClick={() => setHowOpen(true)} />
       <HowItWorksModal open={howOpen} onClose={() => setHowOpen(false)} />
 
       {/* ── HERO ── */}
@@ -742,7 +750,7 @@ export default function HomePage() {
 
             {/* CTAs */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, flexWrap: "wrap", position: "relative", zIndex: 1 }}>
-              <Link href="/auth?intent=join"
+              <Link href="/auth?intent=join&next=/join%3Ftype%3Dclient"
                 style={{
                   fontFamily: FT, fontSize: 14, fontWeight: 700,
                   color: "#000", background: AMBER,
@@ -751,26 +759,20 @@ export default function HomePage() {
                   boxShadow: "0 1px 0 rgba(255,255,255,0.35) inset",
                 }}
                 className="transition-all hover:opacity-90 active:scale-[0.98]">
-                Join as crew <ArrowRight size={13} />
+                Hire crew <ArrowRight size={13} />
               </Link>
 
-              <button
-                onClick={() => setHowOpen(true)}
+              <Link href="/auth?intent=join&next=/join%3Ftype%3Dcrew"
                 style={{
-                  fontFamily: FT, fontSize: 14, color: TEXT,
-                  minHeight: 42, padding: "0 18px", borderRadius: 999,
+                  fontFamily: FT, fontSize: 14, fontWeight: 700,
+                  color: TEXT, background: "rgba(255,255,255,0.06)",
+                  minHeight: 42, padding: "0 22px", borderRadius: 999,
                   border: "1px solid rgba(255,255,255,0.18)",
-                  background: "rgba(255,255,255,0.05)",
-                  display: "flex", alignItems: "center", gap: 8,
-                  cursor: "pointer",
+                  display: "flex", alignItems: "center", gap: 6,
                 }}
                 className="transition-all hover:bg-white/10 active:scale-[0.98]">
-                <span style={{ position: "relative", display: "inline-flex", width: 8, height: 8, flexShrink: 0 }}>
-                  <span className="animate-ping" style={{ position: "absolute", inset: 0, borderRadius: "50%", background: AMBER, opacity: 0.6 }} />
-                  <span style={{ position: "relative", width: 8, height: 8, borderRadius: "50%", background: AMBER, display: "inline-block" }} />
-                </span>
-                How it works
-              </button>
+                Join as crew <ArrowRight size={13} />
+              </Link>
             </div>
           </div>
         </div>

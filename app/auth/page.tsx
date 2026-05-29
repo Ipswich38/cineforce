@@ -31,9 +31,15 @@ function AuthPageInner() {
   const searchParams = useSearchParams();
   const intent    = searchParams.get("intent");
   const nextParam = searchParams.get("next");
+  const initialAccountType = (() => {
+    if (!nextParam?.startsWith("/join")) return "";
+    const qs = nextParam.split("?")[1];
+    const type = qs ? new URLSearchParams(qs).get("type") : null;
+    return type === "client" || type === "crew" ? type : "";
+  })();
 
   const [tab,     setTab]     = useState<"signin" | "join">(intent === "join" ? "join" : "signin");
-  const [accountType, setAccountType] = useState<"client" | "crew" | "">("");
+  const [accountType, setAccountType] = useState<"client" | "crew" | "">(initialAccountType);
   const [error,   setError]   = useState("");
   const [showLegal,     setShowLegal]     = useState(false);
   const [pendingAction, setPendingAction] = useState<"google" | null>(null);
