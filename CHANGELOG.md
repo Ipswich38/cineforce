@@ -12,6 +12,13 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ---
 
+## [0.22.1-beta.1] — 2026-05-29
+
+### Changed
+- **Search filter** — switched from `account_type = 'crew'` to `is_crew = true` now that the Supabase migration has been applied.
+
+---
+
 ## [0.22.0-beta.1] — 2026-05-29
 
 ### Added
