@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
-import { Send, CheckCircle2, Clock, Phone, Mail, Lock, UserCircle, Zap, ArrowRight } from "lucide-react";
+import { Send, CheckCircle2, Clock, Lock, UserCircle, Zap, ArrowRight, MessageSquare } from "lucide-react";
 
 const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
 const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
@@ -22,7 +21,6 @@ export default function ConnectButton({
   crewName,
   isOwn,
   existingRequest,
-  contactDetails,
   isLoggedIn,
   isPremium,
   viewerSubActive,
@@ -154,34 +152,27 @@ export default function ConnectButton({
     );
   }
 
-  if (reqStatus === "accepted" && contactDetails) {
+  if (reqStatus === "accepted") {
     return (
       <div>
         <div className="flex items-center gap-2 mb-4">
           <CheckCircle2 size={18} style={{ color: "#32D74B" }} />
-          <p style={{ fontFamily: FD, fontWeight: 600, fontSize: 15, color: TEXT }}>Connected!</p>
+          <p style={{ fontFamily: FD, fontWeight: 600, fontSize: 15, color: TEXT }}>Request accepted</p>
         </div>
         <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, marginBottom: 14 }}>
-          Contact unlocked.
+          Continue in chat to confirm the project details. Contact details stay private until everything is final.
         </p>
-        <div className="flex flex-col gap-2">
-          {contactDetails.phone && (
-            <a href={`tel:${contactDetails.phone}`}
-              className="flex items-center gap-3 rounded-xl px-4 py-3 transition-all hover:opacity-80"
-              style={{ background: "rgba(50,215,75,0.08)", border: "1px solid rgba(50,215,75,0.2)" }}>
-              <Phone size={15} style={{ color: "#32D74B" }} />
-              <span style={{ fontFamily: FT, fontSize: 14, fontWeight: 500, color: TEXT }}>{contactDetails.phone}</span>
-            </a>
-          )}
-          {contactDetails.email && (
-            <a href={`mailto:${contactDetails.email}`}
-              className="flex items-center gap-3 rounded-xl px-4 py-3 transition-all hover:opacity-80"
-              style={{ background: "rgba(74,158,255,0.08)", border: "1px solid rgba(74,158,255,0.2)" }}>
-              <Mail size={15} style={{ color: "#4A9EFF" }} />
-              <span style={{ fontFamily: FT, fontSize: 14, fontWeight: 500, color: TEXT }}>{contactDetails.email}</span>
-            </a>
-          )}
-        </div>
+        <Link href={`/chat/${existingRequest?.id}`}
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+            padding: "13px", borderRadius: 14,
+            background: AMBER, color: "#000",
+            fontFamily: FT, fontSize: 15, fontWeight: 700,
+            textDecoration: "none",
+          }}
+          className="transition-all hover:opacity-90 active:scale-[0.98]">
+          <MessageSquare size={15} /> Open Messages
+        </Link>
       </div>
     );
   }
@@ -210,14 +201,28 @@ export default function ConnectButton({
     );
   }
 
+  if (reqStatus === "skipped") {
+    return (
+      <div className="text-center">
+        <Clock size={28} style={{ color: MUTED, margin: "0 auto 12px" }} />
+        <p style={{ fontFamily: FD, fontWeight: 600, fontSize: 15, color: TEXT, marginBottom: 6 }}>
+          Not available for this one
+        </p>
+        <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, lineHeight: 1.55 }}>
+          {crewName} was extended on an on-going project and can&apos;t commit to this schedule right now.
+        </p>
+      </div>
+    );
+  }
+
   if (step === "form") {
     return (
       <div>
         <p style={{ fontFamily: FD, fontWeight: 600, fontSize: 15, color: TEXT, marginBottom: 4 }}>
-          Request contact
+          Message {crewName.split(" ")[0]}
         </p>
         <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, marginBottom: 14 }}>
-          Add the project. Keep it short.
+          Share the project and dates. The crew can accept or skip for now.
         </p>
 
         {error && (
@@ -277,7 +282,7 @@ export default function ConnectButton({
         </p>
       </div>
       <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, marginBottom: 18, lineHeight: 1.55 }}>
-        Send a project request. Contact unlocks after approval.
+        Message this crew about your project. Contact details stay private until the booking is confirmed.
       </p>
       <button onClick={() => setStep("form")}
         style={{
@@ -288,7 +293,7 @@ export default function ConnectButton({
           boxShadow: "0 4px 20px rgba(255,179,0,0.25)",
         }}
         className="transition-all hover:opacity-85 active:scale-[0.98]">
-        <Send size={15} /> Request contact
+        <MessageSquare size={15} /> Message
       </button>
     </div>
   );

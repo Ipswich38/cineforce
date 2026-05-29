@@ -5,8 +5,8 @@ import { useState, useEffect, useCallback, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { ROLES, EXPERIENCE_LEVELS, AVAILABILITY, PH_REGIONS, PH_LOCATIONS } from "@/lib/constants";
-import { Search, X, ArrowRight, Clapperboard, Users, ChevronLeft, ChevronRight } from "lucide-react";
+import { ROLES, AVAILABILITY, PH_REGIONS, PH_LOCATIONS } from "@/lib/constants";
+import { Search, X, Clapperboard, Users, ChevronLeft, ChevronRight, MessageSquare } from "lucide-react";
 
 const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
 const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
@@ -35,108 +35,85 @@ const AVATAR_COLORS  = ["#0F1A2E", "#1A0F2E", "#2E0F0F", "#0F2E1A", "#1A2E0F", "
 const AVATAR_ACCENTS = ["#4A9EFF", "#AF52DE", "#FF453A", "#32D74B", "#A8D934", "#FF9F0A"];
 
 
-/* ─── Crew Card (list view) ─── */
+/* ─── Crew Card ─── */
 function CrewCard({ p }: { p: Profile }) {
   const roleData  = ROLES.find((r) => r.id === p.role);
   const availData = AVAILABILITY.find((a) => a.id === p.availability);
-  const expData   = EXPERIENCE_LEVELS.find((e) => e.id === p.experience_level);
   const idx       = p.display_name.charCodeAt(0) % AVATAR_COLORS.length;
   const accent    = AVATAR_ACCENTS[idx];
   const bg        = AVATAR_COLORS[idx];
   const initials  = p.display_name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
   const availColor = availData?.color ?? MUTED;
+  const bio = p.bio?.trim() || `${roleData?.label ?? "Film crew"} based in ${p.city}.`;
 
   return (
-    <Link href={`/crew/${p.slug}`} style={{ textDecoration: "none", display: "block" }}
-      className="group transition-all active:scale-[0.99]">
-      <div style={{
-        background: SURFACE,
-        border: `1px solid ${BORDER}`,
-        borderLeft: `3px solid ${availColor}`,
-        borderRadius: 14,
+    <div
+      className="group transition-all active:scale-[0.99]"
+      style={{
+        background: "#202020",
+        border: "1px solid rgba(255,255,255,0.08)",
+        borderRadius: 26,
         overflow: "hidden",
-        transition: "border-color 0.18s",
-      }}
-        className="group-hover:border-white/[0.14]">
-
-        <div style={{ padding: "16px 18px 14px" }}>
-          {/* Avatar + name + availability */}
-          <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-            <div style={{
-              width: 48, height: 48, borderRadius: 13, flexShrink: 0,
-              background: bg, color: accent,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontFamily: FD, fontWeight: 700, fontSize: 15,
-              border: `1.5px solid ${accent}35`,
-              overflow: "hidden",
-            }}>
-              {p.avatar_url
-                ? <img src={p.avatar_url} alt={p.display_name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                : initials}
-            </div>
-
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontFamily: FD, fontWeight: 700, fontSize: 15, color: TEXT, lineHeight: 1.25, marginBottom: 2 }}>
-                {p.display_name}
-              </p>
-              <p style={{ fontFamily: FT, fontSize: 12, color: MUTED, display: "flex", alignItems: "center", gap: 5 }}>
-                <span style={{ fontSize: 13 }}>{roleData?.icon ?? "🎬"}</span>
-                <span>{roleData?.label ?? p.role}</span>
-                <span style={{ color: BORDER }}>·</span>
-                <span>{p.city}</span>
-              </p>
-            </div>
-
-            {/* Availability badge */}
-            {availData && (
-              <div style={{
-                flexShrink: 0,
-                display: "flex", alignItems: "center", gap: 4,
-                padding: "4px 9px", borderRadius: 20,
-                background: `${availColor}12`,
-                border: `1px solid ${availColor}30`,
-              }}>
-                <span style={{ width: 5, height: 5, borderRadius: "50%", background: availColor, display: "inline-block", flexShrink: 0 }} />
-                <span style={{ fontFamily: FT, fontSize: 11, fontWeight: 600, color: availColor }}>{availData.label}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Specialization tags */}
-          {p.specializations?.length > 0 && (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 12 }}>
-              {p.specializations.slice(0, 3).map((s) => (
-                <span key={s} style={{
-                  fontSize: 11, fontFamily: FT,
-                  background: `${accent}0D`, color: accent,
-                  padding: "3px 9px", borderRadius: 20,
-                  border: `1px solid ${accent}22`,
-                }}>{s}</span>
-              ))}
-            </div>
-          )}
-
-          {/* Rate + exp + arrow */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              {expData && (
-                <span style={{ fontFamily: FT, fontSize: 11, color: "rgba(255,255,255,0.35)" }}>
-                  {expData.label}
-                </span>
-              )}
-              {p.rate_min && (
-                <span style={{ fontFamily: FT, fontSize: 11, color: "rgba(255,255,255,0.35)" }}>
-                  ₱{p.rate_min.toLocaleString()}/{p.rate_unit ?? "day"}
-                </span>
-              )}
-            </div>
-            <span style={{ fontFamily: FT, fontSize: 12, color: AMBER, display: "flex", alignItems: "center", gap: 3, fontWeight: 500 }}>
-              View card <ArrowRight size={11} />
-            </span>
-          </div>
+        padding: 10,
+        boxShadow: "0 20px 50px rgba(0,0,0,0.28)",
+      }}>
+      <Link href={`/crew/${p.slug}`} style={{ textDecoration: "none", display: "block" }}>
+        <div style={{
+          position: "relative",
+          aspectRatio: "1 / 1",
+          borderRadius: 22,
+          overflow: "hidden",
+          background: bg,
+        }}>
+          {p.avatar_url
+            ? <img src={p.avatar_url} alt={p.display_name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: FD, fontSize: 44, fontWeight: 800, color: accent }}>{initials}</div>
+          }
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 45%, rgba(0,0,0,0.72) 100%)" }} />
         </div>
+
+        <div style={{ padding: "18px 12px 12px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+            <p style={{ fontFamily: FD, fontWeight: 760, fontSize: 22, color: TEXT, letterSpacing: "-0.03em", lineHeight: 1.1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {p.display_name}
+            </p>
+            <span style={{
+              width: 24, height: 24, borderRadius: "50%",
+              background: "#F4F4F4", color: "#111",
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              fontFamily: FT, fontSize: 15, fontWeight: 900, flexShrink: 0,
+            }}>✓</span>
+          </div>
+
+          <p style={{ fontFamily: FT, fontSize: 14, color: "rgba(247,247,242,0.62)", lineHeight: 1.55, marginTop: 10, minHeight: 44 }}>
+            {bio.length > 96 ? `${bio.slice(0, 93)}...` : bio}
+          </p>
+        </div>
+      </Link>
+
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 12px 14px" }}>
+        <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 7 }}>
+          <span style={{ width: 8, height: 8, borderRadius: "50%", background: availColor, flexShrink: 0 }} />
+          <span style={{ fontFamily: FT, fontSize: 13, fontWeight: 700, color: availColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {availData?.label ?? "Available"}
+          </span>
+        </div>
+        <span style={{ fontFamily: FT, fontSize: 12, color: MUTED, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 96 }}>
+          {roleData?.label ?? p.role}
+        </span>
+        <Link href={`/crew/${p.slug}`}
+          style={{
+            flexShrink: 0,
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+            minHeight: 42, padding: "0 16px", borderRadius: 999,
+            background: "#F4F4F4", color: "#000", textDecoration: "none",
+            fontFamily: FT, fontSize: 14, fontWeight: 800,
+          }}
+          className="transition-all hover:opacity-90 active:scale-[0.98]">
+          <MessageSquare size={15} /> Message
+        </Link>
       </div>
-    </Link>
+    </div>
   );
 }
 
@@ -613,8 +590,8 @@ function SearchContent() {
         {!loading && profiles.length > 0 && (
           <div style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 340px), 1fr))",
-            gap: 12,
+            gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 280px), 1fr))",
+            gap: 16,
           }}>
             {profiles.map((p) => <CrewCard key={p.id} p={p} />)}
           </div>

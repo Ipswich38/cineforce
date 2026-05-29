@@ -52,7 +52,7 @@ const STATUS_LABELS: Record<string, string> = {
   pending:  "Pending",
   accepted: "Accepted",
   declined: "Declined",
-  skipped:  "Skipped",
+  skipped:  "Unable to commit",
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -346,6 +346,18 @@ export default function ClientDashboard({
                           borderLeft: "2px solid rgba(255,255,255,0.08)",
                         }}>
                           {req.message}
+                        </p>
+                      )}
+
+                      {req.status === "skipped" && (
+                        <p style={{
+                          fontFamily: FT, fontSize: 13, color: "rgba(247,247,242,0.58)",
+                          lineHeight: 1.6, marginTop: 10,
+                          padding: "9px 11px", borderRadius: 9,
+                          background: "rgba(255,255,255,0.035)",
+                          border: `1px solid ${BORDER}`,
+                        }}>
+                          This crew member was extended on an on-going project and can&apos;t commit to your schedule right now.
                         </p>
                       )}
 

@@ -74,7 +74,7 @@ export const EXPERIENCE_LEVELS = [
 // ─── Availability ──────────────────────────────────────────────────────────
 export const AVAILABILITY = [
   { id: "available",   label: "Available",      color: "#34C759" },
-  { id: "busy",        label: "Currently Busy", color: "#FF9500" },
+  { id: "busy",        label: "On-going Project", color: "#FF9500" },
   { id: "not_looking", label: "Not Looking",    color: "#AEAEB2" },
 ] as const;
 
