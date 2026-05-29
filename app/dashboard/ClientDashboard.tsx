@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ROLES, PROJECT_TYPES } from "@/lib/constants";
-import { LogOut, Search, Heart, Inbox, ExternalLink, CheckCircle2, X, Clock, Zap, MessageSquare } from "lucide-react";
+import { LogOut, Search, Heart, Inbox, ExternalLink, CheckCircle2, X, Clock, MessageSquare } from "lucide-react";
 
 const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
 const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
@@ -23,7 +23,6 @@ export type CrewSnap = {
   display_name: string;
   role: string;
   city: string;
-  premium_status: string;
 };
 
 export type SentRequest = {
@@ -74,72 +73,16 @@ function StatusIcon({ status }: { status: string }) {
   return <Clock size={14} style={{ color: "#FF9F0A", flexShrink: 0 }} />;
 }
 
-function TrialBanner({ subStatus, daysLeft }: { subStatus: string; daysLeft: number }) {
-  // During beta (IS_BETA = true) subStatus is always "active" — show founding member badge
-  if (subStatus === "active") {
-    return (
-      <Link href="/subscribe" style={{ textDecoration: "none" }}>
-        <div style={{
-          display: "flex", alignItems: "center", gap: 10,
-          padding: "10px 14px", borderRadius: 12, marginBottom: 20,
-          background: "rgba(255,204,0,0.05)", border: "1px solid rgba(255,204,0,0.14)",
-        }}>
-          <Zap size={13} style={{ color: AMBER, flexShrink: 0 }} />
-          <p style={{ fontFamily: FT, fontSize: 12, color: "rgba(247,247,242,0.55)", flex: 1 }}>
-            <strong style={{ color: AMBER, fontWeight: 600 }}>Founding Member</strong> — full access during beta
-          </p>
-          <span style={{ fontFamily: FT, fontSize: 11, color: "rgba(255,204,0,0.5)", flexShrink: 0 }}>Learn more</span>
-        </div>
-      </Link>
-    );
-  }
-
-  const expired = subStatus === "expired" || daysLeft <= 0;
-  const urgent  = !expired && daysLeft <= 3;
-
-  return (
-    <Link href="/subscribe" style={{ textDecoration: "none" }}>
-      <div style={{
-        display: "flex", alignItems: "center", gap: 12,
-        padding: "12px 16px", borderRadius: 12, marginBottom: 20,
-        background: expired
-          ? "rgba(255,69,58,0.07)"
-          : urgent
-            ? "rgba(255,159,10,0.08)"
-            : "rgba(255,204,0,0.07)",
-        border: `1px solid ${expired ? "rgba(255,69,58,0.2)" : urgent ? "rgba(255,159,10,0.22)" : "rgba(255,204,0,0.18)"}`,
-      }}>
-        <Zap size={15} style={{ color: expired ? "#FF453A" : urgent ? "#FF9F0A" : AMBER, flexShrink: 0 }} />
-        <div style={{ flex: 1 }}>
-          <p style={{ fontFamily: FT, fontSize: 13, fontWeight: 600, color: expired ? "#FF453A" : urgent ? "#FF9F0A" : AMBER }}>
-            {expired ? "Trial ended" : `${daysLeft} day${daysLeft !== 1 ? "s" : ""} left in trial`}
-          </p>
-          <p style={{ fontFamily: FT, fontSize: 12, color: MUTED, marginTop: 1 }}>
-            {expired ? "Subscribe to keep browsing and connecting." : "Subscribe for uninterrupted access at ₱150/month."}
-          </p>
-        </div>
-        <span style={{ fontFamily: FT, fontSize: 12, fontWeight: 600, color: expired ? "#FF453A" : AMBER, flexShrink: 0 }}>
-          Subscribe
-        </span>
-      </div>
-    </Link>
-  );
-}
-
 export default function ClientDashboard({
   profile,
   sentRequests,
   favorites,
   userEmail,
-  subStatus,
-  daysLeft,
 }: {
   profile: Record<string, unknown>;
   sentRequests: SentRequest[];
   favorites: Favorite[];
   userEmail: string;
-  subStatus: string;
-  daysLeft: number;
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -224,9 +167,6 @@ export default function ClientDashboard({
             {[company, city, ptLabel].filter(Boolean).join(" · ")}
           </p>
         </div>
-
-        {/* Trial banner */}
-        <TrialBanner subStatus={subStatus} daysLeft={daysLeft} />
 
         {/* Browse CTA */}
         <Link href="/search"
@@ -420,9 +360,6 @@ export default function ClientDashboard({
                         </p>
                         <p style={{ fontFamily: FT, fontSize: 12, color: MUTED }}>
                           {roleLabel(fav.crew.role)} &middot; {fav.crew.city}
-                          {fav.crew.premium_status === "active" && (
-                            <span style={{ color: AMBER, marginLeft: 6 }}>Active</span>
-                          )}
                         </p>
                       </Link>
                       <Link href={`/crew/${fav.crew.slug}`}

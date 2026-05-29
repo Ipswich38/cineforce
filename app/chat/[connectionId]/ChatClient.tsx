@@ -125,7 +125,7 @@ export default function ChatClient({
         display: "flex", alignItems: "center", gap: 12, padding: "0 16px",
         height: 60, flexShrink: 0,
       }}>
-        <Link href="/dashboard" style={{ color: MUTED, display: "flex", alignItems: "center", flexShrink: 0 }}>
+        <Link href="/messages" style={{ color: MUTED, display: "flex", alignItems: "center", flexShrink: 0 }}>
           <ArrowLeft size={20} />
         </Link>
 

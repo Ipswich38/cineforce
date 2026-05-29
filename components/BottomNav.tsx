@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Home, Search, Info, User, X, ArrowRight,
-  LayoutDashboard, LogOut, Settings, CreditCard,
+  LayoutDashboard, Settings, CreditCard,
   Inbox, Users,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -78,12 +78,6 @@ export default function BottomNav() {
 
   if (HIDDEN_ON.some((p) => path.startsWith(p))) return null;
 
-  async function handleLogout() {
-    const sb = createClient();
-    await sb.auth.signOut();
-    window.location.href = "/";
-  }
-
   const isClient = profile?.account_type === "client";
 
   // ── Logged-in nav ────────────────────────────────────────────────────────────
@@ -94,11 +88,13 @@ export default function BottomNav() {
       ? [
           { href: "/dashboard", icon: LayoutDashboard, label: "Home" },
           { href: "/search",    icon: Users,            label: "Find Crew" },
+          { href: "/messages",  icon: Inbox,            label: "Messages" },
           { href: "/settings",  icon: Settings,         label: "Account" },
         ]
       : [
           { href: "/dashboard",  icon: LayoutDashboard, label: "Home" },
           { href: "/search",     icon: Search,          label: "Find" },
+          { href: "/messages",   icon: Inbox,           label: "Messages" },
           { href: crewCardHref,  icon: CreditCard,      label: "My Card" },
           { href: "/settings",   icon: Settings,        label: "Account" },
         ];

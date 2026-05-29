@@ -15,9 +15,9 @@ const AMBER   = "#FFCC00";
 const BORDER  = "rgba(255,255,255,0.07)";
 
 const CATEGORIES = [
-  { id: "billing",  label: "Billing",         desc: "Payments, subscription, invoices" },
   { id: "bug",      label: "Bug / Error",      desc: "Something is not working" },
   { id: "account",  label: "Account",          desc: "Login, profile, access issues" },
+  { id: "access",   label: "Access",           desc: "Invite code or closed-test access" },
   { id: "feature",  label: "Feature Request",  desc: "Suggestions and ideas" },
   { id: "other",    label: "Other",            desc: "Anything else" },
 ];

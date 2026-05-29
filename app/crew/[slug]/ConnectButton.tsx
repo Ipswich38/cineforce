@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Send, CheckCircle2, Clock, Lock, UserCircle, Zap, ArrowRight, MessageSquare } from "lucide-react";
+import { Send, CheckCircle2, Clock, Lock, UserCircle, Zap, MessageSquare } from "lucide-react";
 
 const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
 const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
@@ -23,7 +23,6 @@ export default function ConnectButton({
   existingRequest,
   isLoggedIn,
   isPremium,
-  viewerSubActive,
 }: {
   crewId: string;
   crewName: string;
@@ -32,7 +31,6 @@ export default function ConnectButton({
   contactDetails: ContactDetails;
   isLoggedIn: boolean;
   isPremium: boolean;
-  viewerSubActive: boolean;
 }) {
   const [step,        setStep]        = useState<"idle" | "form" | "sent">(existingRequest ? "sent" : "idle");
   const [projectName, setProjectName] = useState("");
@@ -119,34 +117,6 @@ export default function ConnectButton({
           }}
           className="transition-all hover:opacity-85">
           Log in
-        </Link>
-      </div>
-    );
-  }
-
-  if (!viewerSubActive) {
-    return (
-      <div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-          <Zap size={16} style={{ color: "#FF9F0A" }} />
-          <p style={{ fontFamily: FD, fontWeight: 600, fontSize: 15, color: TEXT }}>
-            Trial ended
-          </p>
-        </div>
-        <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, marginBottom: 18, lineHeight: 1.55 }}>
-          Subscribe to keep connecting with crew.
-        </p>
-        <Link href="/subscribe"
-          style={{
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-            padding: "13px", borderRadius: 14,
-            background: AMBER, color: "#000",
-            fontFamily: FT, fontSize: 15, fontWeight: 600,
-            textDecoration: "none",
-            boxShadow: "0 4px 20px rgba(255,179,0,0.25)",
-          }}
-          className="transition-all hover:opacity-85 active:scale-[0.98]">
-          Subscribe for ₱150/month <ArrowRight size={15} />
         </Link>
       </div>
     );

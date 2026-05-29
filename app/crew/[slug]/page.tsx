@@ -39,7 +39,6 @@ export default async function CrewProfilePage({ params }: { params: Promise<{ sl
   let existingRequest: { id: string; status: string } | null = null;
   let contactDetails: { phone?: string; email?: string; facebook_url?: string } | null = null;
   let user: { id: string } | null = null;
-  let viewerSubActive = true; // assume active for logged-out viewers (gated by isLoggedIn check)
 
   try {
     const supabase = await createClient();
@@ -68,21 +67,15 @@ export default async function CrewProfilePage({ params }: { params: Promise<{ sl
       credits = (cr ?? []) as typeof credits;
 
       if (user) {
-        const [{ data: reqData }, { data: viewerProfile }] = await Promise.all([
+        const [{ data: reqData }] = await Promise.all([
           supabase
             .from("connection_requests")
             .select("id, status")
             .eq("client_id", user.id)
             .eq("crew_id", pid)
             .single(),
-          supabase
-            .from("profiles")
-            .select("premium_status, trial_started_at")
-            .eq("id", user.id)
-            .single(),
         ]);
         existingRequest = reqData;
-        viewerSubActive = viewerProfile ? isSubscriptionActive(viewerProfile) : false;
       }
 
       if (user && existingRequest?.status === "accepted") {
@@ -300,7 +293,6 @@ export default async function CrewProfilePage({ params }: { params: Promise<{ sl
             contactDetails={contactDetails}
             isLoggedIn={!!user}
             isPremium={isSubscriptionActive(profile)}
-            viewerSubActive={viewerSubActive}
           />
         </div>
       </div>

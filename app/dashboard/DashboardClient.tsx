@@ -6,10 +6,9 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ROLES, AVAILABILITY, EXPERIENCE_LEVELS, RATE_UNITS } from "@/lib/constants";
 import {
-  Bell, LogOut, ExternalLink, Zap, Clock, CheckCircle2, Star,
+  Bell, LogOut, ExternalLink,
   X, Check, ChevronDown, MapPin, Briefcase, DollarSign, User, MessageSquare,
 } from "lucide-react";
-import { getTierInfo, getTierById } from "@/lib/foundingTiers";
 
 const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
 const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
@@ -132,15 +131,11 @@ function RequestCard({
 }
 
 export default function DashboardClient({
-  profile, requests, userEmail, activatedCount, specializations, subStatus, daysLeft,
+  profile, requests, specializations,
 }: {
   profile: Record<string, unknown> | null;
   requests: Request[];
-  userEmail: string;
-  activatedCount: number;
   specializations: string[];
-  subStatus: string;
-  daysLeft: number;
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -148,9 +143,6 @@ export default function DashboardClient({
   const [reqs,            setReqs]            = useState(requests);
   const [activeTab,       setActiveTab]       = useState<"inbox" | "card">("inbox");
   const [signingOut,      setSigningOut]      = useState(false);
-  const [premiumStatus,   setPremiumStatus]   = useState<string>((profile?.premium_status as string) ?? "free");
-  const [requesting,      setRequesting]      = useState(false);
-  const [reqError,        setReqError]        = useState("");
   const [availability,    setAvailability]    = useState<string>((profile?.availability as string) ?? "available");
   const [showAvailPicker, setShowAvailPicker] = useState(false);
   const [togglingAvail,   setTogglingAvail]   = useState(false);
@@ -166,8 +158,6 @@ export default function DashboardClient({
   const profileBio      = (profile?.bio           as string  | null) ?? null;
   const rateMin         = (profile?.rate_min      as number  | null) ?? null;
   const rateMax         = (profile?.rate_max      as number  | null) ?? null;
-  const foundingTier    = (profile?.founding_tier as string  | null) ?? null;
-
   const roleLabel     = profile ? (ROLES.find((r) => r.id === (profile.role as string))?.label ?? (profile.role as string)) : "";
   const roleIcon      = profile ? (ROLES.find((r) => r.id === (profile.role as string))?.icon ?? "") : "";
   const availItem     = AVAILABILITY.find((a) => a.id === availability);
@@ -192,19 +182,6 @@ export default function DashboardClient({
     setAvailability(id);
     setTogglingAvail(false);
     setShowAvailPicker(false);
-  }
-
-  async function requestPremium() {
-    setRequesting(true);
-    setReqError("");
-    const res = await fetch("/api/premium-request", { method: "POST" });
-    if (res.ok) {
-      setPremiumStatus("requested");
-    } else {
-      const body = await res.json() as { error?: string };
-      setReqError(body.error ?? "Something went wrong. Try again.");
-    }
-    setRequesting(false);
   }
 
   return (
@@ -335,63 +312,6 @@ export default function DashboardClient({
               )}
             </div>
           </div>
-        )}
-
-        {/* ── Membership banner ── */}
-        {subStatus === "active" ? (
-          <a href="/subscribe" style={{ textDecoration: "none", display: "block", marginBottom: 20 }}>
-            <div style={{
-              display: "flex", alignItems: "center", gap: 10,
-              padding: "10px 14px", borderRadius: 12,
-              background: "rgba(255,204,0,0.05)", border: "1px solid rgba(255,204,0,0.14)",
-            }}>
-              <Zap size={13} style={{ color: AMBER, flexShrink: 0 }} />
-              <p style={{ fontFamily: FT, fontSize: 12, color: "rgba(247,247,242,0.55)", flex: 1 }}>
-                <strong style={{ color: AMBER, fontWeight: 600 }}>Founding Member</strong> — full access during beta
-              </p>
-              <span style={{ fontFamily: FT, fontSize: 11, color: "rgba(255,204,0,0.5)", flexShrink: 0 }}>Learn more</span>
-            </div>
-          </a>
-        ) : (
-          <a href="/subscribe" style={{ textDecoration: "none", display: "block", marginBottom: 20 }}>
-            <div style={{
-              display: "flex", alignItems: "center", gap: 12,
-              padding: "12px 16px", borderRadius: 12,
-              background: (subStatus === "expired" || daysLeft <= 0)
-                ? "rgba(255,69,58,0.07)"
-                : daysLeft <= 3
-                  ? "rgba(255,159,10,0.08)"
-                  : "rgba(255,204,0,0.07)",
-              border: `1px solid ${(subStatus === "expired" || daysLeft <= 0) ? "rgba(255,69,58,0.2)" : daysLeft <= 3 ? "rgba(255,159,10,0.22)" : "rgba(255,204,0,0.18)"}`,
-            }}>
-              <Zap size={15} style={{
-                color: (subStatus === "expired" || daysLeft <= 0) ? "#FF453A" : daysLeft <= 3 ? "#FF9F0A" : AMBER,
-                flexShrink: 0,
-              }} />
-              <div style={{ flex: 1 }}>
-                <p style={{
-                  fontFamily: FT, fontSize: 13, fontWeight: 600,
-                  color: (subStatus === "expired" || daysLeft <= 0) ? "#FF453A" : daysLeft <= 3 ? "#FF9F0A" : AMBER,
-                }}>
-                  {(subStatus === "expired" || daysLeft <= 0)
-                    ? "Trial ended"
-                    : `${daysLeft} day${daysLeft !== 1 ? "s" : ""} left in trial`}
-                </p>
-                <p style={{ fontFamily: FT, fontSize: 12, color: MUTED, marginTop: 1 }}>
-                  {(subStatus === "expired" || daysLeft <= 0)
-                    ? "Subscribe to keep your profile active and visible."
-                    : "Subscribe for uninterrupted access at ₱150/month."}
-                </p>
-              </div>
-              <span style={{
-                fontFamily: FT, fontSize: 12, fontWeight: 600,
-                color: (subStatus === "expired" || daysLeft <= 0) ? "#FF453A" : AMBER,
-                flexShrink: 0,
-              }}>
-                Subscribe
-              </span>
-            </div>
-          </a>
         )}
 
         {/* ── Tabs ── */}
@@ -616,98 +536,6 @@ export default function DashboardClient({
                 </div>
               )}
             </div>
-
-            {/* Premium / Activation card */}
-            {premiumStatus === "active" && (() => {
-              const tier = getTierById(foundingTier);
-              return (
-                <div style={{
-                  padding: "16px 18px", borderRadius: 14,
-                  background: "rgba(50,215,75,0.05)", border: "1px solid rgba(50,215,75,0.2)",
-                  display: "flex", alignItems: "center", gap: 12,
-                }}>
-                  <CheckCircle2 size={20} style={{ color: "#32D74B", flexShrink: 0 }} />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                      <p style={{ fontFamily: FD, fontWeight: 700, fontSize: 14, color: TEXT }}>Active</p>
-                      {tier && (
-                        <span style={{
-                          fontFamily: FT, fontSize: 11, fontWeight: 700, color: tier.color,
-                          background: `${tier.color}15`, border: `1px solid ${tier.color}30`,
-                          padding: "2px 9px", borderRadius: 20,
-                        }}>
-                          {tier.label}
-                        </span>
-                      )}
-                    </div>
-                    <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, marginTop: 2 }}>
-                      Your card is live and accepting requests.
-                    </p>
-                  </div>
-                  <Star size={15} style={{ color: tier?.color ?? "#32D74B", flexShrink: 0 }} />
-                </div>
-              );
-            })()}
-
-            {premiumStatus === "requested" && (
-              <div style={{
-                padding: "16px 18px", borderRadius: 14,
-                background: "rgba(255,159,10,0.05)", border: "1px solid rgba(255,159,10,0.2)",
-                display: "flex", alignItems: "flex-start", gap: 12,
-              }}>
-                <Clock size={20} style={{ color: "#FF9F0A", flexShrink: 0, marginTop: 1 }} />
-                <div>
-                  <p style={{ fontFamily: FD, fontWeight: 700, fontSize: 14, color: TEXT }}>Activation Pending</p>
-                  <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, marginTop: 4, lineHeight: 1.55 }}>
-                    We received your request and will reach out to{" "}
-                    <strong style={{ color: TEXT }}>{userEmail}</strong> to complete activation.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {premiumStatus === "free" && (() => {
-              const tierInfo = getTierInfo(activatedCount);
-              return (
-                <div style={{ padding: "18px", borderRadius: 14, background: SURFACE, border: `1px solid ${BORDER}` }}>
-                  <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 14 }}>
-                    <Zap size={18} style={{ color: AMBER, flexShrink: 0, marginTop: 2 }} />
-                    <div>
-                      <p style={{ fontFamily: FD, fontWeight: 700, fontSize: 14, color: TEXT }}>Request Activation</p>
-                      {tierInfo ? (
-                        <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, marginTop: 4, lineHeight: 1.55 }}>
-                          You&apos;d join as a{" "}
-                          <strong style={{ color: tierInfo.color }}>{tierInfo.label}</strong>
-                          {" — "}
-                          <strong style={{ color: TEXT }}>{tierInfo.spotsLeft} spot{tierInfo.spotsLeft !== 1 ? "s" : ""} left</strong>.
-                        </p>
-                      ) : (
-                        <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, marginTop: 4 }}>
-                          Activate to appear in search and accept gig requests.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  {reqError && (
-                    <p style={{ fontFamily: FT, fontSize: 13, color: "#FF453A", marginBottom: 10 }}>{reqError}</p>
-                  )}
-                  <button
-                    onClick={requestPremium}
-                    disabled={requesting}
-                    style={{
-                      width: "100%", padding: "12px", borderRadius: 12, border: "none",
-                      background: requesting ? "rgba(255,179,0,0.5)" : AMBER,
-                      color: "#000", fontFamily: FT, fontSize: 14, fontWeight: 700,
-                      cursor: requesting ? "not-allowed" : "pointer",
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                    }}
-                    className="transition-all hover:opacity-85 active:scale-[0.98]">
-                    <Zap size={14} />
-                    {requesting ? "Sending…" : "Request Activation"}
-                  </button>
-                </div>
-              );
-            })()}
           </div>
         )}
       </div>
