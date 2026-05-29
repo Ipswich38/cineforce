@@ -31,9 +31,16 @@ export default async function ChatPage({ params }: { params: Promise<{ connectio
   // Fetch initial messages
   const { data: initialMessages } = await supabase
     .from("messages")
-    .select("id, sender_id, content, created_at")
-    .eq("connection_request_id", connectionId)
+    .select("id, sender_id, body, created_at")
+    .eq("connection_id", connectionId)
     .order("created_at", { ascending: true });
+
+  const messages = (initialMessages ?? []).map((message) => ({
+    id: message.id,
+    sender_id: message.sender_id,
+    content: message.body,
+    created_at: message.created_at,
+  }));
 
   return (
     <ChatClient
@@ -43,7 +50,7 @@ export default async function ChatPage({ params }: { params: Promise<{ connectio
       otherName={otherProfile?.display_name ?? "User"}
       otherAvatar={otherProfile?.avatar_url ?? null}
       otherRole={otherProfile?.role ?? otherProfile?.account_type ?? ""}
-      initialMessages={(initialMessages ?? []) as { id: string; sender_id: string; content: string; created_at: string }[]}
+      initialMessages={messages as { id: string; sender_id: string; content: string; created_at: string }[]}
     />
   );
 }

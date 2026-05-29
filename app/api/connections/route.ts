@@ -21,7 +21,10 @@ export async function POST(req: NextRequest) {
   }
 
   const { error } = await supabase.from("connection_requests").insert({
-    crew_id, project_title: project_title.trim(), message: message?.trim() || null,
+    client_id: user.id,
+    crew_id,
+    project_title: project_title.trim(),
+    message: message?.trim() || null,
   });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 

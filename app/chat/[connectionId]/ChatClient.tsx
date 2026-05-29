@@ -59,10 +59,11 @@ export default function ChatClient({
         "postgres_changes",
         {
           event: "INSERT", schema: "public", table: "messages",
-          filter: `connection_request_id=eq.${connectionId}`,
+          filter: `connection_id=eq.${connectionId}`,
         },
         (payload) => {
-          const msg = payload.new as Message;
+          const row = payload.new as { id: string; sender_id: string; body: string; created_at: string };
+          const msg = { id: row.id, sender_id: row.sender_id, content: row.body, created_at: row.created_at };
           setMessages((prev) => {
             if (prev.some((m) => m.id === msg.id)) return prev;
             return [...prev, msg];

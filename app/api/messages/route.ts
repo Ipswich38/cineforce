@@ -27,10 +27,14 @@ export async function POST(req: NextRequest) {
 
   const { data, error } = await supabase
     .from("messages")
-    .insert({ connection_request_id: connectionId, sender_id: user.id, content: content.trim() })
-    .select("*")
+    .insert({ connection_id: connectionId, sender_id: user.id, body: content.trim() })
+    .select("id, sender_id, body, created_at")
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ message: data });
+  return NextResponse.json({
+    message: data
+      ? { id: data.id, sender_id: data.sender_id, content: data.body, created_at: data.created_at }
+      : null,
+  });
 }
