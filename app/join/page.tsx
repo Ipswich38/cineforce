@@ -143,7 +143,7 @@ export default function JoinPage() {
   const [city,        setCity]        = useState("");
 
   // Crew-only fields
-  const [role,            setRole]            = useState("");
+  const [roles,           setRoles]           = useState<string[]>([]);
   const [specializations, setSpecializations] = useState<string[]>([]);
   const [expLevel,        setExpLevel]        = useState("mid");
   const [availability,    setAvailability]    = useState("available");
@@ -153,9 +153,14 @@ export default function JoinPage() {
   const [bio,             setBio]             = useState("");
   const [showreelUrl,     setShowreelUrl]     = useState("");
   const [portfolioUrl,    setPortfolioUrl]    = useState("");
+  const [tiktokUrl,       setTiktokUrl]       = useState("");
+  const [instagramUrl,    setInstagramUrl]    = useState("");
+  const [linkedinUrl,     setLinkedinUrl]     = useState("");
+  const [facebookUrl,     setFacebookUrl]     = useState("");
   const [phone,           setPhone]           = useState("");
   const [contactEmail,    setContactEmail]    = useState("");
-  const [facebook,        setFacebook]        = useState("");
+  const [viber,           setViber]           = useState("");
+  const [whatsapp,        setWhatsapp]        = useState("");
 
   // Client-only fields
   const [company,        setCompany]        = useState("");
@@ -184,7 +189,7 @@ export default function JoinPage() {
   async function handleCrewSubmit() {
     const e: Record<string, string> = {};
     if (!displayName.trim()) e.displayName = "Required";
-    if (!role) e.role = "Pick your primary role";
+    if (roles.length === 0) e.role = "Pick at least one role";
     if (!city) e.city = "Required";
     if (Object.keys(e).length) {
       setErrors(e);
@@ -201,7 +206,9 @@ export default function JoinPage() {
     // In add-mode: upsert to add crew fields to existing hirer profile
     const crewData = {
       id: userId, slug,
-      display_name: displayName.trim(), bio: bio || null, role,
+      display_name: displayName.trim(), bio: bio || null,
+      role:            roles[0]       || "",
+      secondary_roles: roles.slice(1),
       account_type: "crew",
       is_crew: true,
       experience_level: expLevel,
@@ -209,8 +216,12 @@ export default function JoinPage() {
       rate_min:  rateMin  ? Number(rateMin)  : null,
       rate_max:  rateMax  ? Number(rateMax)  : null,
       rate_unit: rateUnit,
-      showreel_url:  showreelUrl  || null,
-      portfolio_url: portfolioUrl || null,
+      showreel_url:   showreelUrl   || null,
+      portfolio_url:  portfolioUrl  || null,
+      tiktok_url:     tiktokUrl     || null,
+      instagram_url:  instagramUrl  || null,
+      linkedin_url:   linkedinUrl   || null,
+      facebook_url:   facebookUrl   || null,
       ...(isAddMode ? {} : { is_hirer: false, premium_status: "trial", trial_started_at: new Date().toISOString() }),
     };
 
@@ -232,12 +243,13 @@ export default function JoinPage() {
       );
     }
 
-    if (phone || contactEmail || facebook) {
+    if (phone || contactEmail || viber || whatsapp) {
       await sb.from("contact_details").insert({
         id: userId,
-        phone:        phone        || null,
-        email:        contactEmail || null,
-        facebook_url: facebook     || null,
+        phone:    phone        || null,
+        email:    contactEmail || null,
+        viber:    viber        || null,
+        whatsapp: whatsapp     || null,
       });
     }
 
@@ -304,7 +316,7 @@ export default function JoinPage() {
     setValidating(false);
   }
 
-  const specOptions  = role ? (SPEC_BY_ROLE[role] ?? []) : [];
+  const specOptions  = roles.length > 0 ? (SPEC_BY_ROLE[roles[0]] ?? []) : [];
   const selectBase: React.CSSProperties = { ...inputStyle, appearance: "none" as const };
 
   if (checking) {
@@ -584,27 +596,50 @@ export default function JoinPage() {
             <SectionLabel>Role</SectionLabel>
             <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
 
-              <Field label="Primary role *" error={errors.role}>
+              <Field
+                label={`Roles * — select all that apply${roles.length > 0 ? ` (${roles.length} selected)` : ""}`}
+                error={errors.role}
+                hint="First selected becomes your primary role shown on your card."
+              >
                 {Array.from(new Set(ROLES.map((r) => r.dept))).map((dept) => (
                   <div key={dept} style={{ marginBottom: 10 }}>
                     <p style={{ fontFamily: FT, fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>{dept}</p>
                     <div className="responsive-two" style={{ gap: 6 }}>
-                      {ROLES.filter((r) => r.dept === dept).map((r) => (
-                        <button key={r.id} type="button"
-                          onClick={() => { setRole(r.id); setSpecializations([]); if (errors.role) setErrors((p) => ({ ...p, role: "" })); }}
-                          style={{
-                            display: "flex", alignItems: "center", gap: 8,
-                            padding: "9px 12px", borderRadius: 10, cursor: "pointer",
-                            border: `1px solid ${role === r.id ? "rgba(255,179,0,0.4)" : BORDER}`,
-                            background: role === r.id ? "rgba(255,179,0,0.08)" : "#080808",
-                            color: role === r.id ? AMBER : MUTED,
-                            fontFamily: FT, fontSize: 12, fontWeight: 500,
-                            transition: "all 0.15s", textAlign: "left",
-                          }}>
-                          <span style={{ fontSize: 15, flexShrink: 0 }}>{r.icon}</span>
-                          <span style={{ lineHeight: 1.3 }}>{r.label}</span>
-                        </button>
-                      ))}
+                      {ROLES.filter((r) => r.dept === dept).map((r) => {
+                        const selected = roles.includes(r.id);
+                        const isPrimary = roles[0] === r.id;
+                        return (
+                          <button key={r.id} type="button"
+                            onClick={() => {
+                              setRoles((prev) => {
+                                const next = prev.includes(r.id)
+                                  ? prev.filter((x) => x !== r.id)
+                                  : [...prev, r.id];
+                                if (prev[0] !== next[0]) setSpecializations([]);
+                                return next;
+                              });
+                              if (errors.role) setErrors((p) => ({ ...p, role: "" }));
+                            }}
+                            style={{
+                              display: "flex", alignItems: "center", gap: 8, position: "relative",
+                              padding: "9px 12px", borderRadius: 10, cursor: "pointer",
+                              border: `1px solid ${selected ? "rgba(255,179,0,0.45)" : BORDER}`,
+                              background: selected ? "rgba(255,179,0,0.09)" : "#080808",
+                              color: selected ? AMBER : MUTED,
+                              fontFamily: FT, fontSize: 12, fontWeight: 500,
+                              transition: "all 0.15s", textAlign: "left",
+                            }}>
+                            <span style={{ fontSize: 15, flexShrink: 0 }}>{r.icon}</span>
+                            <span style={{ lineHeight: 1.3, flex: 1 }}>{r.label}</span>
+                            {isPrimary && (
+                              <span style={{
+                                fontFamily: FT, fontSize: 9, fontWeight: 700, color: "#000",
+                                background: AMBER, padding: "2px 5px", borderRadius: 4, flexShrink: 0,
+                              }}>PRIMARY</span>
+                            )}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 ))}
@@ -697,16 +732,47 @@ export default function JoinPage() {
             <SectionLabel optional>Work</SectionLabel>
             <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
 
-              <Field label="Rate (₱)" hint="Optional">
-                <div className="mobile-stack" style={{ display: "flex", gap: 8 }}>
-                  <FocusInput type="number" value={rateMin} onChange={(e) => setRateMin(e.target.value)} placeholder="Min" />
-                  <FocusInput type="number" value={rateMax} onChange={(e) => setRateMax(e.target.value)} placeholder="Max" />
-                  <select value={rateUnit} onChange={(e) => setRateUnit(e.target.value)} style={{ ...selectBase, minWidth: 90, flexShrink: 0 }}>
+              {/* Rate */}
+              <div>
+                <label style={{ fontFamily: FT, fontSize: 13, fontWeight: 500, color: MUTED, display: "block", marginBottom: 8 }}>
+                  Day rate (₱)
+                </label>
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <div style={{ flex: 1, position: "relative" }}>
+                    <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", fontFamily: FT, fontSize: 14, color: MUTED, pointerEvents: "none" }}>₱</span>
+                    <input
+                      type="text" inputMode="numeric" pattern="[0-9]*"
+                      value={rateMin} onChange={(e) => setRateMin(e.target.value.replace(/\D/g, ""))}
+                      placeholder="Min"
+                      style={{ ...inputStyle, paddingLeft: 28, color: TEXT, fontSize: 15 }}
+                      onFocus={(e) => (e.target.style.borderColor = "rgba(255,179,0,0.4)")}
+                      onBlur={(e)  => (e.target.style.borderColor = BORDER)}
+                    />
+                  </div>
+                  <span style={{ fontFamily: FT, fontSize: 13, color: MUTED, flexShrink: 0 }}>–</span>
+                  <div style={{ flex: 1, position: "relative" }}>
+                    <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", fontFamily: FT, fontSize: 14, color: MUTED, pointerEvents: "none" }}>₱</span>
+                    <input
+                      type="text" inputMode="numeric" pattern="[0-9]*"
+                      value={rateMax} onChange={(e) => setRateMax(e.target.value.replace(/\D/g, ""))}
+                      placeholder="Max"
+                      style={{ ...inputStyle, paddingLeft: 28, color: TEXT, fontSize: 15 }}
+                      onFocus={(e) => (e.target.style.borderColor = "rgba(255,179,0,0.4)")}
+                      onBlur={(e)  => (e.target.style.borderColor = BORDER)}
+                    />
+                  </div>
+                  <select value={rateUnit} onChange={(e) => setRateUnit(e.target.value)} style={{ ...selectBase, minWidth: 100, flexShrink: 0 }}>
                     {RATE_UNITS.map((u) => <option key={u.id} value={u.id}>{u.label}</option>)}
                   </select>
                 </div>
-              </Field>
+                {rateMin && rateMax && (
+                  <p style={{ fontFamily: FT, fontSize: 12, color: AMBER, marginTop: 6 }}>
+                    ₱{Number(rateMin).toLocaleString()} – ₱{Number(rateMax).toLocaleString()} / {RATE_UNITS.find(u => u.id === rateUnit)?.label ?? rateUnit}
+                  </p>
+                )}
+              </div>
 
+              {/* Showreel + Portfolio */}
               <div className="responsive-two">
                 <Field label="Showreel URL">
                   <FocusInput type="url" value={showreelUrl} onChange={(e) => setShowreelUrl(e.target.value)} placeholder="YouTube / Vimeo" />
@@ -715,16 +781,81 @@ export default function JoinPage() {
                   <FocusInput type="url" value={portfolioUrl} onChange={(e) => setPortfolioUrl(e.target.value)} placeholder="https://…" />
                 </Field>
               </div>
+
+              {/* Social links */}
+              <div>
+                <label style={{ fontFamily: FT, fontSize: 13, fontWeight: 500, color: MUTED, display: "block", marginBottom: 8 }}>
+                  Social profiles
+                </label>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {[
+                    { label: "TikTok",    icon: "🎵", val: tiktokUrl,    set: setTiktokUrl,    ph: "https://tiktok.com/@yourhandle" },
+                    { label: "Instagram", icon: "📸", val: instagramUrl, set: setInstagramUrl, ph: "https://instagram.com/yourhandle" },
+                    { label: "Facebook",  icon: "👤", val: facebookUrl,  set: setFacebookUrl,  ph: "https://facebook.com/yourpage" },
+                    { label: "LinkedIn",  icon: "💼", val: linkedinUrl,  set: setLinkedinUrl,  ph: "https://linkedin.com/in/yourname" },
+                  ].map(({ label, icon, val, set, ph }) => (
+                    <div key={label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 16, flexShrink: 0, width: 24, textAlign: "center" }}>{icon}</span>
+                      <input
+                        type="url" value={val} onChange={(e) => set(e.target.value)}
+                        placeholder={ph}
+                        style={{ ...inputStyle, flex: 1, fontSize: 13, padding: "10px 12px" }}
+                        onFocus={(e) => (e.target.style.borderColor = "rgba(255,179,0,0.4)")}
+                        onBlur={(e)  => (e.target.style.borderColor = BORDER)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* ── BIO ── */}
+          {/* ── BIO / PITCH ── */}
           <div className="app-surface" style={{ background: SURFACE, border: `1px solid ${BORDER}`, padding: "clamp(20px,5%,28px)" }}>
             <SectionLabel optional>Pitch</SectionLabel>
+
+            {/* Quick templates */}
+            <div style={{ marginBottom: 14 }}>
+              <p style={{ fontFamily: FT, fontSize: 12, color: MUTED, marginBottom: 8 }}>Quick templates — click to use, then edit:</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {[
+                  {
+                    tag: "Professional",
+                    text: "Experienced in commercial and narrative production across formats. Known for strong communication on set and consistent results under tight deadlines. Available for local and out-of-town productions.",
+                  },
+                  {
+                    tag: "Specialist",
+                    text: "Specialist with a strong reel across branded content, feature films, and online productions. I bring both technical precision and a strong creative eye to every project. My work speaks for itself — links above.",
+                  },
+                  {
+                    tag: "Fresh talent",
+                    text: "Emerging talent passionate about visual storytelling. Trained and actively building a professional reel. Fast learner, strong work ethic, and ready for the right first credit. Let's talk.",
+                  },
+                ].map(({ tag, text }) => (
+                  <button key={tag} type="button"
+                    onClick={() => setBio(text)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 10,
+                      background: "#080808", border: `1px solid ${BORDER}`,
+                      cursor: "pointer", textAlign: "left", transition: "border-color 0.15s",
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(255,179,0,0.3)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = BORDER)}>
+                    <span style={{ fontFamily: FT, fontSize: 11, fontWeight: 700, color: AMBER, background: "rgba(255,204,0,0.08)", padding: "2px 7px", borderRadius: 6, flexShrink: 0 }}>
+                      {tag}
+                    </span>
+                    <span style={{ fontFamily: FT, fontSize: 12, color: MUTED, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {text.slice(0, 72)}…
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <Field>
-              <textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={4}
-                placeholder="Short, sharp, specific."
-                style={{ ...inputStyle, resize: "none", lineHeight: 1.65 }}
+              <textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={5}
+                placeholder="Short, sharp, specific. What makes you the right person for the job?"
+                style={{ ...inputStyle, resize: "vertical", lineHeight: 1.65, minHeight: 110 }}
                 onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(255,179,0,0.4)")}
                 onBlur={(e)  => (e.currentTarget.style.borderColor = BORDER)} />
             </Field>
@@ -737,7 +868,7 @@ export default function JoinPage() {
               <Lock size={14} style={{ color: "#32D74B", marginTop: 2, flexShrink: 0 }} />
               <p style={{ fontFamily: FT, fontSize: 13, color: "rgba(240,237,229,0.6)", lineHeight: 1.55 }}>
                 <strong style={{ color: TEXT, fontWeight: 600 }}>Private.</strong>{" "}
-                Shared only after you accept.
+                Shared only after you accept a project request.
               </p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -747,9 +878,14 @@ export default function JoinPage() {
               <Field label="Contact email">
                 <FocusInput type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} placeholder="your@email.com" />
               </Field>
-              <Field label="Facebook profile URL">
-                <FocusInput type="url" value={facebook} onChange={(e) => setFacebook(e.target.value)} placeholder="https://facebook.com/…" />
-              </Field>
+              <div className="responsive-two">
+                <Field label="Viber">
+                  <FocusInput type="tel" value={viber} onChange={(e) => setViber(e.target.value)} placeholder="+63 9XX XXX XXXX" />
+                </Field>
+                <Field label="WhatsApp">
+                  <FocusInput type="tel" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="+63 9XX XXX XXXX" />
+                </Field>
+              </div>
             </div>
           </div>
 

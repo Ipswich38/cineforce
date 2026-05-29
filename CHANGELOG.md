@@ -12,6 +12,17 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ---
 
+## [0.24.0-beta.1] — 2026-05-29
+
+### Changed
+- **Join form — multi-role selection** — crew can now select all roles they can do; first selected is marked `PRIMARY` and stored as the search/display role; additional roles stored in `secondary_roles[]`.
+- **Join form — rate inputs** — replaced bare number inputs with `₱`-prefixed text inputs, live preview of the selected range (e.g. ₱5,000 – ₱10,000 / day).
+- **Join form — social links** — TikTok, Instagram, Facebook, LinkedIn added as public portfolio links in the Work section.
+- **Join form — pitch templates** — three quick-fill templates (Professional, Specialist, Fresh talent) that populate the bio field and can be edited freely.
+- **Join form — contact** — Facebook removed; Viber and WhatsApp added as private contact options.
+
+---
+
 ## [0.23.0-beta.1] — 2026-05-29
 
 ### Added
