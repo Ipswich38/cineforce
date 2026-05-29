@@ -30,6 +30,8 @@ type ProfileData = {
   avatar_url: string | null;
   is_paused: boolean;
   account_type: string;
+  is_crew: boolean | null;
+  is_hirer: boolean | null;
   role: string | null;
   city: string | null;
   bio: string | null;
@@ -314,7 +316,8 @@ export default function SettingsClient({
   const [draftUnit,    setDraftUnit]    = useState(initialProfile?.rate_unit ?? "day");
   const [draftSpecs,   setDraftSpecs]   = useState<string[]>(initialProfile?.specializations ?? []);
 
-  const isCrew = profile?.account_type === "crew";
+  const isCrew  = (profile?.is_crew  ?? profile?.account_type === "crew");
+  const isHirer = (profile?.is_hirer ?? profile?.account_type === "client");
   const tabs   = isCrew
     ? [{ id: "profile" as const, label: "Profile" }, { id: "availability" as const, label: "Availability" }, { id: "account" as const, label: "Account" }]
     : [{ id: "profile" as const, label: "Profile" }, { id: "account" as const, label: "Account" }];
@@ -735,6 +738,50 @@ export default function SettingsClient({
                 </Link>
               ))}
             </Card>
+
+            {/* Activate other role */}
+            {!isCrew && (
+              <Card title="Also join as Crew">
+                <div style={{ padding: "16px 18px" }}>
+                  <p style={{ fontFamily: FT, fontSize: 14, color: TEXT, marginBottom: 6 }}>
+                    You signed up as a hirer. Want to also list yourself as crew?
+                  </p>
+                  <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, lineHeight: 1.6, marginBottom: 14 }}>
+                    Activating your crew profile lets you appear in search and receive project requests — without losing your hirer account. You get one login for both.
+                  </p>
+                  <Link href="/join?type=crew&mode=add"
+                    style={{
+                      display: "inline-flex", alignItems: "center", gap: 7,
+                      padding: "11px 18px", borderRadius: 12,
+                      background: "rgba(255,204,0,0.08)", border: "1px solid rgba(255,204,0,0.25)",
+                      fontFamily: FT, fontSize: 14, fontWeight: 700, color: AMBER, textDecoration: "none",
+                    }}>
+                    🎬 Activate Crew Profile
+                  </Link>
+                </div>
+              </Card>
+            )}
+            {!isHirer && (
+              <Card title="Also join as Hirer">
+                <div style={{ padding: "16px 18px" }}>
+                  <p style={{ fontFamily: FT, fontSize: 14, color: TEXT, marginBottom: 6 }}>
+                    You signed up as crew. Want to also hire other crew?
+                  </p>
+                  <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, lineHeight: 1.6, marginBottom: 14 }}>
+                    Activating your hirer profile lets you send connection requests to other crew members — without losing your crew card.
+                  </p>
+                  <Link href="/join?type=client&mode=add"
+                    style={{
+                      display: "inline-flex", alignItems: "center", gap: 7,
+                      padding: "11px 18px", borderRadius: 12,
+                      background: "rgba(255,204,0,0.08)", border: "1px solid rgba(255,204,0,0.25)",
+                      fontFamily: FT, fontSize: 14, fontWeight: 700, color: AMBER, textDecoration: "none",
+                    }}>
+                    🎥 Activate Hirer Profile
+                  </Link>
+                </div>
+              </Card>
+            )}
 
             {/* Account settings */}
             <Card title="Account" last>

@@ -122,10 +122,17 @@ export default function JoinPage() {
     const type = new URLSearchParams(window.location.search).get("type");
     return type === "crew" || type === "client" ? type : null;
   })();
+  // mode=add means user already has a profile, just activating second role
+  const isAddMode = (() => {
+    if (typeof window === "undefined") return false;
+    return new URLSearchParams(window.location.search).get("mode") === "add";
+  })();
 
   const [checking,   setChecking]   = useState(true);
   const [userId,     setUserId]     = useState<string | null>(null);
-  const [step,       setStep]       = useState<"code" | "pick" | "crew" | "client">("code");
+  const [step,       setStep]       = useState<"code" | "pick" | "crew" | "client">(
+    isAddMode && initialType ? initialType : "code"
+  );
   const [requestedType] = useState<"crew" | "client" | null>(initialType);
   const [inviteCode, setInviteCode] = useState("");
   const [codeError,  setCodeError]  = useState("");
@@ -191,10 +198,12 @@ export default function JoinPage() {
     const sb = createClient();
     const slug = displayName.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") + "-" + Math.random().toString(36).slice(2, 6);
 
-    const { error: profileErr } = await sb.from("profiles").insert({
+    // In add-mode: upsert to add crew fields to existing hirer profile
+    const crewData = {
       id: userId, slug,
       display_name: displayName.trim(), bio: bio || null, role,
       account_type: "crew",
+      is_crew: true,
       experience_level: expLevel,
       city, availability,
       rate_min:  rateMin  ? Number(rateMin)  : null,
@@ -202,9 +211,12 @@ export default function JoinPage() {
       rate_unit: rateUnit,
       showreel_url:  showreelUrl  || null,
       portfolio_url: portfolioUrl || null,
-      premium_status:  "trial",
-      trial_started_at: new Date().toISOString(),
-    });
+      ...(isAddMode ? {} : { is_hirer: false, premium_status: "trial", trial_started_at: new Date().toISOString() }),
+    };
+
+    const { error: profileErr } = isAddMode
+      ? await sb.from("profiles").update({ ...crewData, is_crew: true }).eq("id", userId)
+      : await sb.from("profiles").insert({ ...crewData, is_hirer: false, premium_status: "trial", trial_started_at: new Date().toISOString() });
 
     if (profileErr) { setErrors({ submit: profileErr.message }); setSaving(false); return; }
 
@@ -244,16 +256,24 @@ export default function JoinPage() {
     const sb = createClient();
     const slug = displayName.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") + "-" + Math.random().toString(36).slice(2, 6);
 
-    const { error: profileErr } = await sb.from("profiles").insert({
-      id: userId, slug,
+    const hirerData = {
       display_name: displayName.trim(),
       account_type: "client",
+      is_hirer: true,
       city,
       company:         company        || null,
       production_type: productionType || null,
-      premium_status:  "trial",
-      trial_started_at: new Date().toISOString(),
-    });
+    };
+
+    const { error: profileErr } = isAddMode
+      ? await sb.from("profiles").update(hirerData).eq("id", userId)
+      : await sb.from("profiles").insert({
+          id: userId, slug,
+          ...hirerData,
+          is_crew: false,
+          premium_status:  "trial",
+          trial_started_at: new Date().toISOString(),
+        });
 
     if (profileErr) { setErrors({ submit: profileErr.message }); setSaving(false); return; }
 

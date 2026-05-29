@@ -12,6 +12,18 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ---
 
+## [0.22.0-beta.1] — 2026-05-29
+
+### Added
+- **Dual-role system** — one login can now be both crew and hirer (Airbnb-style). `is_crew` and `is_hirer` boolean flags replace the binary `account_type` field. Existing profiles backfilled via migration.
+- **Mode switcher dashboard** — users with both roles see a `🎬 Crew Mode / 🎥 Hirer Mode` toggle that persists in localStorage and switches between the crew and hirer dashboards.
+- **Activate other role in Settings** — hirers see "Activate Crew Profile" and crew see "Activate Hirer Profile" — both route through the existing join form in `mode=add` which updates (not inserts) the profile.
+
+### Fixed
+- **Hirers showing in crew search** — search now filters `account_type = 'crew'` (will switch to `is_crew = true` after migration runs). Hirers are fully excluded from Find Crew results.
+
+---
+
 ## [0.21.0-beta.1] — 2026-05-29
 
 ### Changed

@@ -147,7 +147,7 @@ function SearchContent() {
         )
         .order("created_at", { ascending: false });
 
-      q = q.eq("is_paused", false);
+      q = q.eq("is_paused", false).eq("account_type", "crew");
       if (roleFilter)   q = q.eq("role", roleFilter);
       if (cityFilter)   q = q.eq("city", cityFilter);
       if (expFilter)    q = q.eq("experience_level", expFilter);
