@@ -12,6 +12,14 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ---
 
+## [0.19.1-beta.1] — 2026-05-29
+
+### Fixed
+- **Messaging real-time delivery** — explicitly set JWT on Supabase realtime connection before subscribing so crew receives hirer messages live (RLS `auth.uid()` was null without the token).
+- **Sent message not appearing for sender** — chat now adds the message to local state immediately after API confirms insert, no longer dependent on real-time to show the sender's own message.
+
+---
+
 ## [0.19.0-beta.1] — 2026-05-29
 
 ### Added

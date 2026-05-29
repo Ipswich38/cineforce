@@ -50,28 +50,37 @@ export default function ChatClient({
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Real-time subscription
+  // Real-time subscription — must set auth token before subscribing so RLS
+  // can evaluate auth.uid() for the subscriber (createBrowserClient from @supabase/ssr
+  // doesn't always wire the JWT into the realtime connection automatically).
   useEffect(() => {
     const supabase = createClient();
-    const channel = supabase
-      .channel(`chat:${connectionId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT", schema: "public", table: "messages",
-          filter: `connection_id=eq.${connectionId}`,
-        },
-        (payload) => {
-          const row = payload.new as { id: string; sender_id: string; body: string; created_at: string };
-          const msg = { id: row.id, sender_id: row.sender_id, content: row.body, created_at: row.created_at };
-          setMessages((prev) => {
-            if (prev.some((m) => m.id === msg.id)) return prev;
-            return [...prev, msg];
-          });
-        }
-      )
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) supabase.realtime.setAuth(session.access_token);
+
+      channel = supabase
+        .channel(`chat:${connectionId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT", schema: "public", table: "messages",
+            filter: `connection_id=eq.${connectionId}`,
+          },
+          (payload) => {
+            const row = payload.new as { id: string; sender_id: string; body: string; created_at: string };
+            const msg = { id: row.id, sender_id: row.sender_id, content: row.body, created_at: row.created_at };
+            setMessages((prev) => {
+              if (prev.some((m) => m.id === msg.id)) return prev;
+              return [...prev, msg];
+            });
+          }
+        )
+        .subscribe();
+    });
+
+    return () => { if (channel) supabase.removeChannel(channel); };
   }, [connectionId]);
 
   async function send() {
@@ -86,7 +95,16 @@ export default function ChatClient({
       body: JSON.stringify({ connectionId, content: text }),
     });
 
-    if (!res.ok) setInput(text); // restore on failure
+    if (!res.ok) {
+      setInput(text);
+    } else {
+      const json = await res.json();
+      if (json.message) {
+        setMessages((prev) =>
+          prev.some((m) => m.id === json.message.id) ? prev : [...prev, json.message]
+        );
+      }
+    }
     setSending(false);
     inputRef.current?.focus();
   }
