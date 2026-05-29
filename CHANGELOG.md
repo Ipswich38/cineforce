@@ -12,6 +12,13 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ---
 
+## [0.20.1-beta.1] — 2026-05-29
+
+### Changed
+- **Messaging: Supabase Broadcast** — server broadcasts each new message to `chat:{connectionId}` channel after DB insert; client subscribes via Broadcast (no RLS friction, instant delivery). Polling reduced to 10 s fallback for reconnects/missed messages.
+
+---
+
 ## [0.20.0-beta.1] — 2026-05-29
 
 ### Changed

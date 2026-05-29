@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { ArrowLeft, Send, MessageSquare, Search } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
 const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
@@ -102,44 +103,59 @@ export default function MessagesClient({
     setMessages([]);
     lastTsRef.current = null;
     try {
-      const res = await fetch(`/api/messages?connectionId=${connId}`);
+      const res = await fetch(`/api/messages?connectionId=${connId}`, { cache: "no-store" });
       if (res.ok) {
         const { messages: rows } = await res.json();
-        setMessages(rows);
-        if (rows.length > 0) lastTsRef.current = rows[rows.length - 1].created_at;
+        setMessages(rows ?? []);
+        if ((rows ?? []).length > 0) lastTsRef.current = rows[rows.length - 1].created_at;
       }
     } finally {
       setLoadingChat(false);
     }
   }, []);
 
-  // Poll for new messages since last known timestamp
+  // Poll for missed messages (fallback — Broadcast handles real-time delivery)
   const pollMessages = useCallback(async (connId: string) => {
     const after = lastTsRef.current;
     const url = after
       ? `/api/messages?connectionId=${connId}&after=${encodeURIComponent(after)}`
       : `/api/messages?connectionId=${connId}`;
     try {
-      const res = await fetch(url);
+      const res = await fetch(url, { cache: "no-store" });
       if (!res.ok) return;
       const { messages: rows } = await res.json();
-      if (!rows.length) return;
+      if (!(rows ?? []).length) return;
       setMessages((prev) => {
         const ids = new Set(prev.map((m) => m.id));
-        const fresh = rows.filter((m: Message) => !ids.has(m.id));
+        const fresh = (rows as Message[]).filter((m) => !ids.has(m.id));
         if (!fresh.length) return prev;
         lastTsRef.current = fresh[fresh.length - 1].created_at;
         return [...prev, ...fresh];
       });
-    } catch { /* silent — polling, not critical */ }
+    } catch { /* non-fatal */ }
   }, []);
 
-  // Start/restart polling whenever active conversation changes
+  // Supabase Broadcast subscription — instant delivery, no RLS friction
+  useEffect(() => {
+    if (!activeId) return;
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`chat:${activeId}`)
+      .on("broadcast", { event: "new_message" }, ({ payload }) => {
+        const msg = payload as Message;
+        setMessages((prev) => prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]);
+        lastTsRef.current = msg.created_at;
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [activeId]);
+
+  // Initial load + 10 s polling fallback
   useEffect(() => {
     if (pollRef.current) clearInterval(pollRef.current);
     if (!activeId) { setMessages([]); return; }
     loadMessages(activeId);
-    pollRef.current = setInterval(() => pollMessages(activeId), 3000);
+    pollRef.current = setInterval(() => pollMessages(activeId), 10000);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [activeId, loadMessages, pollMessages]);
 

@@ -75,9 +75,33 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({
-    message: data
-      ? { id: data.id, sender_id: data.sender_id, content: data.body, created_at: data.created_at }
-      : null,
-  });
+
+  const message = data
+    ? { id: data.id, sender_id: data.sender_id, content: data.body, created_at: data.created_at }
+    : null;
+
+  // Broadcast to the Realtime channel so the recipient gets it instantly.
+  // Fire-and-forget — polling is the fallback if this fails.
+  if (message) {
+    fetch(
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/realtime/v1/api/broadcast`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+          "apikey": process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        },
+        body: JSON.stringify({
+          messages: [{
+            topic: `realtime:chat:${connectionId}`,
+            event: "new_message",
+            payload: message,
+          }],
+        }),
+      }
+    ).catch(() => {});
+  }
+
+  return NextResponse.json({ message });
 }
