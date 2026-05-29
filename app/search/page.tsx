@@ -374,7 +374,7 @@ function SearchContent() {
                     <>
                       <button onClick={() => { setCityFilter(""); setOpenPanel(null); }}
                         style={{ width: "100%", padding: "12px 20px", backgroundColor: !cityFilter ? "#221D0A" : "#0E0E12", border: "none", borderBottom: `1px solid ${BORDER}`, cursor: "pointer", textAlign: "left" }}>
-                        <span style={{ fontFamily: FT, fontSize: 13, color: !cityFilter ? AMBER : TEXT }}>Anywhere in the Philippines</span>
+                        <span style={{ fontFamily: FT, fontSize: 13, color: !cityFilter ? AMBER : TEXT }}>Anywhere</span>
                       </button>
                       {PH_REGIONS.map((region) => (
                         <div key={region.id}>

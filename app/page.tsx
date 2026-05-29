@@ -411,7 +411,7 @@ function BookingSearch() {
               <>
                 <button onClick={() => { setCity(""); setOpenPanel(null); }}
                   style={{ width: "100%", padding: "13px 24px", backgroundColor: !city ? "#221D0A" : "#111116", border: "none", borderBottom: `1px solid ${BORDER}`, cursor: "pointer", textAlign: "left" }}>
-                  <span style={{ fontFamily: FT, fontSize: 14, color: !city ? AMBER : TEXT }}>Anywhere in the Philippines</span>
+                  <span style={{ fontFamily: FT, fontSize: 14, color: !city ? AMBER : TEXT }}>Anywhere</span>
                 </button>
                 {PH_REGIONS.map((region) => (
                   <div key={region.id}>
@@ -673,7 +673,7 @@ function HowItWorksModal({ open, onClose }: { open: boolean; onClose: () => void
 const HERO_MSGS: Array<Array<{ t: string; a?: true }>> = [
   [{ t: "Find the right " }, { t: "crew", a: true }, { t: " for your next " }, { t: "project", a: true }, { t: "." }],
   [{ t: "Verified talent", a: true }, { t: ". Real availability. No cold DMs." }],
-  [{ t: "The marketplace built for " }, { t: "Philippine filmmakers", a: true }, { t: "." }],
+  [{ t: "The marketplace built for " }, { t: "film & media professionals", a: true }, { t: "." }],
 ];
 
 /* ─── Page ─── */

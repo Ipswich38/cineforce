@@ -12,6 +12,20 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ---
 
+## [0.23.0-beta.1] — 2026-05-29
+
+### Added
+- **Geolock middleware** — Philippines-only access enforced at the Edge via `x-vercel-ip-country` header; non-PH visitors land on `/not-available` with a "notify me" CTA. Bypassed locally (no geo header in dev). Override with `GEOLOCK_BYPASS_KEY` header for internal testing.
+- **Visitor cap** — optional global limit (default 10 000 per 5-min window) using Upstash Redis REST API. Activates automatically when `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` env vars are set; silently skipped otherwise. Over-limit visitors see `/capacity` with a 60 s auto-retry countdown.
+- **Per-IP rate limiting** — 120 req/min per IP enforced at the Edge; returns 429 with `Retry-After` header on breach.
+- **Not-available page** (`/not-available`) — clean geo-block page with "Notify me" email CTA.
+- **Capacity page** (`/capacity`) — full-capacity page with 60 s countdown and auto-redirect.
+
+### Changed
+- **Removed Philippines-specific copy** — hero headline, search placeholder, about page, and legal eligibility section are now global-neutral. RA 10173 compliance section retained (still legally required for PH operations).
+
+---
+
 ## [0.22.1-beta.1] — 2026-05-29
 
 ### Changed

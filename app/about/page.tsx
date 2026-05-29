@@ -70,7 +70,7 @@ export default async function AboutPage() {
               Why we built this
             </p>
             <h1 className="about-title" style={{ fontFamily: FD, lineHeight: 0.96, letterSpacing: "-0.055em", maxWidth: 760 }}>
-              The Philippines&apos; first. Built for every side of production.
+              Built for every side of production.
             </h1>
           </div>
           <p style={{ fontFamily: FT, color: MUTED, fontSize: 17, lineHeight: 1.65 }}>

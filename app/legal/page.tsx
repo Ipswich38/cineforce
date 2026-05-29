@@ -66,7 +66,7 @@ export default function LegalPage() {
               <p style={prose}>By creating an account on CineVerse, you agree to these Terms of Service. If you do not agree, do not use the platform.</p>
 
               <p style={h2Style}>2. Who Can Use CineVerse</p>
-              <p style={prose}>CineVerse is open to Filipino film and media professionals (crew) and production companies or independent producers (clients). You must be at least 18 years old to register.</p>
+              <p style={prose}>CineVerse is open to film and media professionals (crew) and production companies or independent producers (clients). Service is currently available in selected regions only. You must be at least 18 years old to register.</p>
 
               <p style={h2Style}>3. Your Account</p>
               <p style={prose}>You are responsible for maintaining the confidentiality of your account. You agree to provide accurate information and keep your profile up to date. CineVerse reserves the right to suspend accounts that contain false or misleading information.</p>
