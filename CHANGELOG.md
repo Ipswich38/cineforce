@@ -8,6 +8,12 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ## [Unreleased]
 
+> Work in progress — not yet tagged.
+
+---
+
+## [0.25.0-beta.1] — 2026-05-30
+
 ### Changed
 - **Rebrand to "CineForce powered by CineVerse"** — new brand mark + lockup components, app/apple icons, web manifest, and public naming applied across the home, search, crew, dashboard, join, auth, messages, about, and subscribe pages.
 - **Crew privacy** — public crew profiles now display a first name / alias only (`publicCrewName` / `publicCrewInitials`); full names are no longer exposed publicly.
