@@ -1,6 +1,6 @@
 const RESEND_API_KEY  = process.env.RESEND_API_KEY;
 const ADMIN_EMAIL     = process.env.ADMIN_EMAIL ?? "kreativloops@gmail.com";
-const APP_URL         = process.env.NEXT_PUBLIC_APP_URL ?? "https://cineverseph.vercel.app";
+const APP_URL         = process.env.NEXT_PUBLIC_APP_URL ?? "https://cineforce.vercel.app";
 
 async function send(payload: object) {
   if (!RESEND_API_KEY) return;
@@ -23,7 +23,7 @@ export async function sendPremiumRequestEmail(profile: PremiumRequestProfile) {
   const adminUrl   = `${APP_URL}/admin`;
 
   await send({
-    from: "CineVerse <onboarding@resend.dev>",
+    from: "CineForce <onboarding@resend.dev>",
     to: [ADMIN_EMAIL],
     subject: `Premium Request — ${profile.display_name} (${profile.role}, ${profile.city})`,
     html: `
@@ -54,12 +54,12 @@ export async function sendConnectionRequestEmail(info: ConnectionNotificationInf
   const dashboardUrl = `${APP_URL}/dashboard`;
 
   await send({
-    from: "CineVerse <onboarding@resend.dev>",
+    from: "CineForce <onboarding@resend.dev>",
     to: [info.crewEmail],
     subject: `New request: "${info.projectTitle}"`,
     html: `
       <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px;background:#111;color:#f7f7f2;border-radius:12px;">
-        <p style="font-size:12px;color:#8E8E93;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 20px;">CineVerse</p>
+        <p style="font-size:12px;color:#8E8E93;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 20px;">CineForce</p>
         <h2 style="margin:0 0 8px;font-size:22px;color:#f7f7f2;letter-spacing:-0.02em;">New project request</h2>
         <p style="font-size:15px;color:#8E8E93;margin:0 0 28px;">Someone wants to work with you.</p>
         <table style="width:100%;border-collapse:collapse;background:#1a1a1e;border-radius:10px;overflow:hidden;margin-bottom:24px;">

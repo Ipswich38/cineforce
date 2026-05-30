@@ -5,13 +5,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ROLES, AVAILABILITY, EXPERIENCE_LEVELS, PH_REGIONS, PH_LOCATIONS } from "@/lib/constants";
+import BrandLockup from "@/components/BrandLockup";
+import BrandMark from "@/components/BrandMark";
 import {
   ArrowRight, Search,
-  Clapperboard, X, Menu, ChevronLeft, ChevronRight, Calendar,
+  X, Menu, ChevronLeft, ChevronRight, Calendar,
 } from "lucide-react";
 
-const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
-const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
+const FD = '"Jost", sans-serif';
+const FT = '"Montserrat", sans-serif';
 
 const BG      = "#000000";
 const BG_ALT  = "#080808";
@@ -60,8 +62,8 @@ function Nav({ onHowClick }: { onHowClick: () => void }) {
 
           {/* Logo */}
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-            <Clapperboard size={17} style={{ color: AMBER }} strokeWidth={2} />
-            <span style={{ fontFamily: FD, fontWeight: 700, fontSize: 17, color: TEXT, letterSpacing: "-0.02em" }}>CineVerse</span>
+            <BrandMark size={24} />
+            <BrandLockup size={17} />
           </Link>
 
           {/* Desktop nav links */}
@@ -81,6 +83,15 @@ function Nav({ onHowClick }: { onHowClick: () => void }) {
               className="transition-colors hover:text-white">
               How it works
             </button>
+            {/* Cross-link to the CineVerse gear store (opens a new tab) */}
+            <a
+              href="https://www.cineverse.store"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ fontFamily: FT, fontSize: 14, fontWeight: 700, color: AMBER }}
+              className="transition-opacity hover:opacity-80">
+              Need Gear? ↗
+            </a>
           </nav>
 
           {/* Right controls */}
@@ -604,7 +615,7 @@ function BookingSearch() {
 
 
 const HOW_STEPS = [
-  { num: "01", icon: "🔍", title: "Search by role and date", desc: "Pick a role, set your project dates, and choose a city. CineVerse shows crew who are actually available." },
+  { num: "01", icon: "🔍", title: "Search by role and date", desc: "Pick a role, set your project dates, and choose a city. CineForce shows crew who are actually available." },
   { num: "02", icon: "🃏", title: "Browse profile cards",    desc: "See rate, experience, specializations, and availability at a glance. No cold DMs into the void." },
   { num: "03", icon: "💬", title: "Connect and chat",        desc: "Send a connection request with your project details. Once the crew accepts, you chat directly inside the app." },
 ];
@@ -631,7 +642,7 @@ function HowItWorksModal({ open, onClose }: { open: boolean; onClose: () => void
         }}><X size={15} /></button>
 
         <p style={{ fontFamily: FT, fontSize: 11, fontWeight: 700, color: AMBER, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>
-          How CineVerse works
+          How CineForce works
         </p>
         <h2 style={{ fontFamily: FD, fontWeight: 700, fontSize: "clamp(1.3rem,3vw,1.7rem)", color: TEXT, letterSpacing: "-0.025em", lineHeight: 1.1, marginBottom: 28 }}>
           From search to set. <span style={{ color: AMBER }}>Fast.</span>

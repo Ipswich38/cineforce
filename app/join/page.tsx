@@ -5,10 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ROLES, EXPERIENCE_LEVELS, AVAILABILITY, PH_REGIONS, PH_LOCATIONS, RATE_UNITS, PROJECT_TYPES } from "@/lib/constants";
-import { ArrowLeft, ArrowRight, Check, Clapperboard, Lock, Ticket } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Lock, Ticket } from "lucide-react";
+import BrandLockup from "@/components/BrandLockup";
+import BrandMark from "@/components/BrandMark";
 
-const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
-const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
+const FD = '"Jost", sans-serif';
+const FT = '"Montserrat", sans-serif';
 
 const BG      = "#000000";
 const SURFACE = "#101010";
@@ -117,6 +119,11 @@ function FocusInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
 
 export default function JoinPage() {
   const router = useRouter();
+  const nextParam = (() => {
+    if (typeof window === "undefined") return null;
+    const next = new URLSearchParams(window.location.search).get("next");
+    return next?.startsWith("/") ? next : null;
+  })();
   const initialType = (() => {
     if (typeof window === "undefined") return null;
     const type = new URLSearchParams(window.location.search).get("type");
@@ -175,7 +182,10 @@ export default function JoinPage() {
     const sb = createClient();
     sb.auth.getSession().then(({ data: { session } }) => {
       if (!session?.user) {
-        const suffix = type === "crew" || type === "client" ? `?type=${type}` : "";
+        const parts = new URLSearchParams();
+        if (type === "crew" || type === "client") parts.set("type", type);
+        if (nextParam) parts.set("next", nextParam);
+        const suffix = parts.toString() ? `?${parts.toString()}` : "";
         router.replace(`/auth?intent=join&next=${encodeURIComponent(`/join${suffix}`)}`);
         return;
       }
@@ -184,7 +194,7 @@ export default function JoinPage() {
       if (name) setDisplayName(name);
       setChecking(false);
     });
-  }, [router]);
+  }, [router, nextParam]);
 
   async function handleCrewSubmit() {
     const e: Record<string, string> = {};
@@ -253,7 +263,7 @@ export default function JoinPage() {
       });
     }
 
-    router.push("/dashboard?welcome=1");
+    router.push(nextParam ?? "/dashboard?welcome=1");
   }
 
   async function handleClientSubmit() {
@@ -295,7 +305,7 @@ export default function JoinPage() {
       body: JSON.stringify({ code: inviteCode.trim() }),
     });
 
-    router.push("/dashboard?welcome=1");
+    router.push(nextParam ?? "/dashboard?welcome=1");
   }
 
   async function validateCode() {
@@ -336,8 +346,8 @@ export default function JoinPage() {
           style={{ display: "flex", alignItems: "center", gap: 8, color: MUTED }}
           className="hover:opacity-70 transition-opacity">
           <ArrowLeft size={15} />
-          <Clapperboard size={15} style={{ color: AMBER }} strokeWidth={2} />
-          <span style={{ fontFamily: FD, fontWeight: 700, fontSize: 16, color: TEXT, letterSpacing: "-0.02em" }}>CineVerse</span>
+          <BrandMark size={22} />
+          <BrandLockup size={16} />
         </Link>
       ) : step === "pick" ? (
         <button
@@ -373,7 +383,7 @@ export default function JoinPage() {
               Enter your invite code
             </h1>
             <p style={{ fontFamily: FT, fontSize: 15, color: MUTED, lineHeight: 1.6 }}>
-              CineVerse is currently invite-only. Enter the code you received to continue.
+              CineForce is currently invite-only. Enter the code you received to continue.
             </p>
           </div>
 
@@ -422,7 +432,7 @@ export default function JoinPage() {
         <div className="app-container-form" style={{ flex: 1, paddingBlock: "clamp(12px,3vh,28px) clamp(56px,8vh,88px)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
           <div style={{ marginBottom: 36 }}>
             <h1 style={{ fontFamily: FD, fontWeight: 700, fontSize: "clamp(24px,5vw,32px)", color: TEXT, letterSpacing: "-0.028em", marginBottom: 10 }}>
-              How are you using CineVerse?
+              How are you using CineForce?
             </h1>
             <p style={{ fontFamily: FT, fontSize: 15, color: MUTED, lineHeight: 1.6 }}>
               We&apos;ll set up your account based on your role.

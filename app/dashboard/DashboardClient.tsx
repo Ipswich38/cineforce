@@ -5,14 +5,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ROLES, AVAILABILITY, EXPERIENCE_LEVELS, RATE_UNITS } from "@/lib/constants";
+import BrandLockup from "@/components/BrandLockup";
 import {
   Bell, LogOut, ExternalLink, Settings,
   Check, ChevronDown, MapPin, Briefcase, DollarSign, User,
   MessageSquare, CheckCircle2, Clock, X, Star,
 } from "lucide-react";
 
-const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
-const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
+const FD = '"Jost", sans-serif';
+const FT = '"Montserrat", sans-serif';
 
 const BG      = "#000000";
 const SURFACE = "#0C0C0F";
@@ -191,7 +192,12 @@ export default function DashboardClient({
   const rateUnitLabel   = RATE_UNITS.find((u) => u.id === (profile?.rate_unit as string))?.label ?? "Per Day";
 
   async function respond(id: string, status: "accepted" | "skipped") {
-    await supabase.from("connection_requests").update({ status }).eq("id", id);
+    const res = await fetch("/api/connections", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, status }),
+    });
+    if (!res.ok) return;
     setReqs((prev) => prev.map((r) => r.id === id ? { ...r, status } : r));
   }
 
@@ -222,8 +228,8 @@ export default function DashboardClient({
         paddingTop: "env(safe-area-inset-top, 0px)",
       }}>
         <div className="app-container-narrow topbar-inner">
-          <Link href="/" style={{ fontFamily: FD, fontWeight: 800, fontSize: 17, color: TEXT, letterSpacing: "-0.03em", textDecoration: "none" }}>
-            CineVerse
+          <Link href="/" style={{ textDecoration: "none" }}>
+            <BrandLockup size={17} />
           </Link>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             {/* Bell */}
@@ -507,7 +513,7 @@ export default function DashboardClient({
               <div>
                 <p style={{ fontFamily: FT, fontSize: 14, fontWeight: 600, color: "#4A9EFF" }}>View public profile</p>
                 <p style={{ fontFamily: FT, fontSize: 12, color: MUTED, marginTop: 2 }}>
-                  cineverseph.vercel.app/crew/{profileSlug}
+                  cineforce.vercel.app/crew/{profileSlug}
                 </p>
               </div>
               <ExternalLink size={15} style={{ color: "#4A9EFF", flexShrink: 0 }} />

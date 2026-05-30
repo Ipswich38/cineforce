@@ -8,7 +8,17 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ## [Unreleased]
 
-> Work in progress — not yet tagged.
+### Changed
+- **Rebrand to "CineForce powered by CineVerse"** — new brand mark + lockup components, app/apple icons, web manifest, and public naming applied across the home, search, crew, dashboard, join, auth, messages, about, and subscribe pages.
+- **Crew privacy** — public crew profiles now display a first name / alias only (`publicCrewName` / `publicCrewInitials`); full names are no longer exposed publicly.
+- **Connection requests seed the conversation** — the client's request message is now written into the message thread (on send, and idempotently on accept) so the first message appears in chat.
+- **Connection accept — authorization hardened** — the PATCH handler verifies the crew member owns the request (403 otherwise) before updating status.
+
+### Added
+- **"Need Gear?" cross-link** in the header → CineVerse gear store (cineverse.store), opens in a new tab.
+
+### Removed
+- Legacy `/chat/[connectionId]` client view — the route now redirects to `/messages?thread=<id>`.
 
 ---
 

@@ -5,14 +5,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ROLES, PROJECT_TYPES } from "@/lib/constants";
+import BrandLockup from "@/components/BrandLockup";
+import { publicCrewName } from "@/lib/publicName";
 import {
   LogOut, Search, Heart, ExternalLink, Settings,
   CheckCircle2, X, Clock, MessageSquare, ChevronDown,
   Inbox, Users,
 } from "lucide-react";
 
-const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
-const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
+const FD = '"Jost", sans-serif';
+const FT = '"Montserrat", sans-serif';
 
 const BG      = "#000000";
 const SURFACE = "#0C0C0F";
@@ -135,8 +137,8 @@ export default function ClientDashboard({
         paddingTop: "env(safe-area-inset-top, 0px)",
       }}>
         <div className="app-container-narrow topbar-inner">
-          <Link href="/" style={{ fontFamily: FD, fontWeight: 800, fontSize: 17, color: TEXT, letterSpacing: "-0.03em", textDecoration: "none" }}>
-            CineVerse
+          <Link href="/" style={{ textDecoration: "none" }}>
+            <BrandLockup size={17} />
           </Link>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <Link href="/settings"
@@ -281,7 +283,7 @@ export default function ClientDashboard({
                       <div style={{ padding: "14px 16px 0" }}>
                         <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 12 }}>
                           {req.crew ? (
-                            <CrewAvatar name={req.crew.display_name} size={46} />
+                            <CrewAvatar name={publicCrewName(req.crew.display_name)} size={46} />
                           ) : (
                             <div style={{
                               width: 46, height: 46, borderRadius: "50%", flexShrink: 0,
@@ -300,7 +302,7 @@ export default function ClientDashboard({
                             </div>
                             {req.crew && (
                               <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, marginTop: 3 }}>
-                                {req.crew.display_name} · {roleLabel(req.crew.role)} · {req.crew.city}
+                                {publicCrewName(req.crew.display_name)} · {roleLabel(req.crew.role)} · {req.crew.city}
                               </p>
                             )}
                           </div>
@@ -411,10 +413,10 @@ export default function ClientDashboard({
                       background: CARD, border: `1px solid ${BORDER}`,
                       borderRadius: 14, padding: "12px 14px",
                     }}>
-                      <CrewAvatar name={fav.crew.display_name} size={46} />
+                      <CrewAvatar name={publicCrewName(fav.crew.display_name)} size={46} />
                       <Link href={`/crew/${fav.crew.slug}`} style={{ flex: 1, minWidth: 0, textDecoration: "none" }}>
                         <p style={{ fontFamily: FT, fontSize: 14, fontWeight: 600, color: TEXT, marginBottom: 2 }}>
-                          {fav.crew.display_name}
+                          {publicCrewName(fav.crew.display_name)}
                         </p>
                         <p style={{ fontFamily: FT, fontSize: 12, color: MUTED }}>
                           {roleLabel(fav.crew.role)} · {fav.crew.city}

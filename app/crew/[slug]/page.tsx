@@ -1,14 +1,17 @@
 export const dynamic = "force-dynamic";
 import { createClient } from "@/lib/supabase/server";
-import { ROLES, EXPERIENCE_LEVELS, AVAILABILITY, PROJECT_TYPES } from "@/lib/constants";
+import { ROLES, PROJECT_TYPES } from "@/lib/constants";
 import { isSubscriptionActive } from "@/lib/subscription";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import ConnectButton from "./ConnectButton";
-import { MapPin, ArrowLeft, Package, Clapperboard, ExternalLink, UserCircle, MoreVertical } from "lucide-react";
+import { MapPin, ArrowLeft, Package, Clapperboard, ExternalLink, UserCircle } from "lucide-react";
+import BrandLockup from "@/components/BrandLockup";
+import BrandMark from "@/components/BrandMark";
+import { publicCrewInitials, publicCrewName } from "@/lib/publicName";
 
-const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
-const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
+const FD = '"Jost", sans-serif';
+const FT = '"Montserrat", sans-serif';
 
 const BG      = "#000000";
 const SURFACE = "#101010";
@@ -21,6 +24,23 @@ const DIVIDER = "rgba(255,255,255,0.05)";
 
 const AVATAR_COLORS  = ["#0F1A2E", "#1A0F2E", "#2E0F0F", "#0F2E1A", "#1A2E0F", "#2E1A0F"];
 const AVATAR_ACCENTS = ["#4A9EFF", "#AF52DE", "#FF453A", "#32D74B", "#A8D934", "#FF9F0A"];
+const EXPERIENCE_YEARS: Record<string, number> = {
+  entry: 1,
+  mid: 4,
+  senior: 9,
+  expert: 13,
+};
+
+function experienceYears(level: string) {
+  return EXPERIENCE_YEARS[level] ?? 1;
+}
+
+function bioQuote(bio: string | null) {
+  const text = (bio ?? "").trim().replace(/\s+/g, " ");
+  if (!text) return "Available for the right production.";
+  const firstSentence = text.split(/(?<=[.!?])\s+/)[0] ?? text;
+  return firstSentence.length > 112 ? `${firstSentence.slice(0, 109).trimEnd()}...` : firstSentence;
+}
 
 type Profile = {
   id: string; slug: string; display_name: string; avatar_url: string | null;
@@ -90,10 +110,12 @@ export default async function CrewProfilePage({ params }: { params: Promise<{ sl
   if (!profile) notFound();
 
   const roleLabel   = ROLES.find((r) => r.id === profile.role)?.label ?? profile.role;
-  const roleIcon    = ROLES.find((r) => r.id === profile.role)?.icon ?? "🎬";
-  const expLabel    = EXPERIENCE_LEVELS.find((e) => e.id === profile.experience_level)?.label ?? profile.experience_level;
-  const availConfig = AVAILABILITY.find((a) => a.id === profile.availability);
-  const initials    = profile.display_name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
+  const publicName  = publicCrewName(profile.display_name);
+  const initials    = publicCrewInitials(profile.display_name);
+  const projectsMade = credits.length;
+  const yearsExp = experienceYears(profile.experience_level);
+  const quote = bioQuote(profile.bio);
+  const handle = `@${profile.slug}`;
 
   const idx         = profile.display_name.charCodeAt(0) % AVATAR_COLORS.length;
   const avatarBg    = AVATAR_COLORS[idx];
@@ -110,8 +132,8 @@ export default async function CrewProfilePage({ params }: { params: Promise<{ sl
             Find
           </Link>
           <div className="flex items-center gap-2">
-            <Clapperboard size={15} style={{ color: AMBER }} strokeWidth={2} />
-            <span style={{ fontFamily: FD, fontWeight: 700, fontSize: 16, color: TEXT, letterSpacing: "-0.02em" }}>CineVerse</span>
+            <BrandMark size={22} />
+            <BrandLockup size={16} />
           </div>
           <div style={{ width: 64 }} />
         </div>
@@ -119,39 +141,63 @@ export default async function CrewProfilePage({ params }: { params: Promise<{ sl
 
       <div className="app-container-narrow" style={{ paddingBottom: "clamp(56px,8vw,88px)" }}>
 
-        {/* ── Hero photo card ── */}
-        <div className="app-surface overflow-hidden mb-4" style={{ background: SURFACE, border: `1px solid ${BORDER}` }}>
-          {/* Photo */}
-          <div style={{ position: "relative", width: "100%", aspectRatio: "4/3", background: avatarBg, overflow: "hidden" }}>
-            {profile.avatar_url
-              ? <img src={profile.avatar_url} alt={profile.display_name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 72, fontWeight: 700, color: avatarAccent, fontFamily: FD }}>{initials}</div>
-            }
-            <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "45%", background: "linear-gradient(to bottom, transparent, rgba(0,0,0,0.55))" }} />
-            {/* Pagination dots */}
-            <div style={{ position: "absolute", bottom: 14, left: "50%", transform: "translateX(-50%)", display: "flex", gap: 6, alignItems: "center" }}>
-              {[0,1,2,3,4].map((i) => (
-                <div key={i} style={{ width: i === 0 ? 20 : 7, height: 7, borderRadius: 4, background: i === 0 ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.35)" }} />
-              ))}
+        {/* ── Profile showcase card ── */}
+        <div className="app-surface overflow-hidden mb-4" style={{ background: "#050505", border: `1px solid ${BORDER}`, boxShadow: "0 18px 60px rgba(0,0,0,0.35)" }}>
+          <div style={{ position: "relative", width: "100%", minHeight: 620, display: "flex", flexDirection: "column" }}>
+            <div style={{ position: "relative", flex: "1 1 60%", minHeight: 360, background: avatarBg, overflow: "hidden" }}>
+              {profile.avatar_url
+                ? <img src={profile.avatar_url} alt={publicName} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
+                : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 72, fontWeight: 700, color: avatarAccent, fontFamily: FD }}>{initials}</div>
+              }
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.2) 52%, rgba(0,0,0,0.5) 100%)" }} />
+              <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "46%", background: "linear-gradient(to bottom, transparent, rgba(0,0,0,0.64) 45%, rgba(0,0,0,0.9) 100%)" }} />
             </div>
-          </div>
 
-          {/* Name + mutual connections + menu */}
-          <div style={{ padding: "20px 20px 20px", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-            <div>
-              <h1 style={{ fontFamily: FD, fontWeight: 700, fontSize: "clamp(1.4rem,3vw,1.75rem)", color: TEXT, letterSpacing: "-0.025em", lineHeight: 1.1 }}>
-                {profile.display_name}
-              </h1>
-              {availConfig && (
-                <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, marginTop: 6 }}>
-                  <span>Status: </span>
-                  <span style={{ color: availConfig.color, fontWeight: 500 }}>{availConfig.label}</span>
+            <div style={{ flex: "0 0 auto", background: "#050505", padding: "18px 18px 22px" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+                <div style={{ minWidth: 0 }}>
+                  <h1 style={{ fontFamily: FD, fontWeight: 700, fontSize: "clamp(2rem, 6vw, 2.65rem)", lineHeight: 0.95, letterSpacing: "-0.04em", color: TEXT }}>
+                    {publicName}
+                  </h1>
+                  <p style={{ fontFamily: FT, fontSize: 14, color: "rgba(255,255,255,0.72)", marginTop: 10 }}>
+                    {handle}
+                  </p>
+                </div>
+                <span style={{ fontFamily: FT, fontSize: 14, color: "rgba(255,255,255,0.78)", whiteSpace: "nowrap", marginTop: 3 }}>
+                  See profile
+                </span>
+              </div>
+
+              {quote && (
+                <p style={{ fontFamily: FT, fontSize: 14, color: "rgba(255,255,255,0.8)", lineHeight: 1.55, marginTop: 16, maxWidth: 500 }}>
+                  &ldquo;{quote}&rdquo;
                 </p>
               )}
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 16, marginTop: 18 }}>
+                <div>
+                  <p style={{ fontFamily: FD, fontWeight: 700, fontSize: 28, lineHeight: 1, color: TEXT }}>{projectsMade}</p>
+                  <p style={{ fontFamily: FT, fontSize: 13, color: "rgba(255,255,255,0.66)", marginTop: 5 }}>Projects Made</p>
+                </div>
+                <div>
+                  <p style={{ fontFamily: FD, fontWeight: 700, fontSize: 28, lineHeight: 1, color: TEXT }}>{yearsExp}</p>
+                  <p style={{ fontFamily: FT, fontSize: 13, color: "rgba(255,255,255,0.66)", marginTop: 5 }}>Years Experience</p>
+                </div>
+              </div>
+
+              <div style={{ marginTop: 18 }}>
+                <ConnectButton
+                  crewId={profile.id}
+                  crewName={publicName}
+                  crewSlug={profile.slug}
+                  isOwn={user?.id === profile.id}
+                  existingRequest={existingRequest}
+                  contactDetails={contactDetails}
+                  isLoggedIn={!!user}
+                  isPremium={isSubscriptionActive(profile)}
+                />
+              </div>
             </div>
-            <button style={{ background: "none", border: "none", color: MUTED, padding: "2px", flexShrink: 0, marginTop: 4 }}>
-              <MoreVertical size={20} />
-            </button>
           </div>
         </div>
 
@@ -179,27 +225,6 @@ export default async function CrewProfilePage({ params }: { params: Promise<{ sl
             )}
           </div>
         </div>
-
-        {/* ── Credits count card ── */}
-        {credits && credits.length > 0 && (
-          <div className="app-surface overflow-hidden mb-4" style={{ background: SURFACE, border: `1px solid ${BORDER}` }}>
-            <div className="flex">
-              <div style={{ flex: 1, padding: "20px 24px" }}>
-                <p style={{ fontFamily: FT, fontSize: 13, color: MUTED }}>{roleLabel} Credits</p>
-                <p style={{ fontFamily: FD, fontWeight: 700, fontSize: 34, color: TEAL, marginTop: 4, lineHeight: 1 }}>
-                  {credits.length}
-                </p>
-              </div>
-              <div style={{ width: 1, background: BORDER }} />
-              <div style={{ flex: 1, padding: "20px 24px" }}>
-                <p style={{ fontFamily: FT, fontSize: 13, color: MUTED }}>Film Credits</p>
-                <p style={{ fontFamily: FD, fontWeight: 700, fontSize: 34, color: TEAL, marginTop: 4, lineHeight: 1 }}>
-                  {credits.filter((c: { type?: string }) => c.type === "film" || c.type === "short_film").length || credits.length}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* ── Bio card ── */}
         {profile.bio && (
@@ -283,18 +308,6 @@ export default async function CrewProfilePage({ params }: { params: Promise<{ sl
           </div>
         )}
 
-        {/* ── Connect button ── */}
-        <div className="app-surface p-5" style={{ background: SURFACE, border: `1px solid ${BORDER}` }}>
-          <ConnectButton
-            crewId={profile.id}
-            crewName={profile.display_name}
-            isOwn={user?.id === profile.id}
-            existingRequest={existingRequest}
-            contactDetails={contactDetails}
-            isLoggedIn={!!user}
-            isPremium={isSubscriptionActive(profile)}
-          />
-        </div>
       </div>
     </div>
   );

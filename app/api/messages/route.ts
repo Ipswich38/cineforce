@@ -82,6 +82,11 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  await admin
+    .from("connection_requests")
+    .update({ updated_at: new Date().toISOString() })
+    .eq("id", connectionId);
+
   const message = data
     ? { id: data.id, sender_id: data.sender_id, content: data.body, created_at: data.created_at }
     : null;

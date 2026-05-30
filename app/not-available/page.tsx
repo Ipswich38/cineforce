@@ -1,7 +1,7 @@
-export const metadata = { title: "Not Available in Your Region — CineVerse" };
+export const metadata = { title: "Not Available in Your Region — CineForce" };
 
-const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
-const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
+const FD = '"Jost", sans-serif';
+const FT = '"Montserrat", sans-serif';
 
 export default function NotAvailablePage() {
   return (
@@ -36,7 +36,7 @@ export default function NotAvailablePage() {
           fontFamily: FT, fontSize: 16, color: "#8E8E93",
           lineHeight: 1.7, marginBottom: 10,
         }}>
-          CineVerse is currently available in <strong style={{ color: "#F7F7F2" }}>the Philippines</strong> only.
+          CineForce is currently available in <strong style={{ color: "#F7F7F2" }}>the Philippines</strong> only.
           We&apos;re expanding to more countries soon — sign up to be notified when we launch in your region.
         </p>
 
@@ -48,7 +48,7 @@ export default function NotAvailablePage() {
         </p>
 
         <a
-          href="mailto:hello@cineverseph.com?subject=Notify me when CineVerse launches in my region"
+          href="mailto:hello@cineforce.vercel.app?subject=Notify me when CineForce launches in my region"
           style={{
             display: "inline-flex", alignItems: "center", justifyContent: "center",
             padding: "13px 28px", borderRadius: 999,

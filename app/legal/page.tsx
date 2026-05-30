@@ -4,8 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
-const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
+const FD = '"Jost", sans-serif';
+const FT = '"Montserrat", sans-serif';
 const BG = "#000"; const TEXT = "#F7F7F2"; const MUTED = "#8E8E93"; const AMBER = "#FFCC00";
 const BORDER = "rgba(255,255,255,0.07)"; const SURFACE = "#101010";
 
@@ -63,28 +63,28 @@ export default function LegalPage() {
           {active === "Terms of Service" && (
             <div>
               <p style={{ ...h2Style, marginTop: 0 }}>1. Acceptance</p>
-              <p style={prose}>By creating an account on CineVerse, you agree to these Terms of Service. If you do not agree, do not use the platform.</p>
+              <p style={prose}>By creating an account on CineForce, you agree to these Terms of Service. If you do not agree, do not use the platform.</p>
 
-              <p style={h2Style}>2. Who Can Use CineVerse</p>
-              <p style={prose}>CineVerse is open to film and media professionals (crew) and production companies or independent producers (clients). Service is currently available in selected regions only. You must be at least 18 years old to register.</p>
+              <p style={h2Style}>2. Who Can Use CineForce</p>
+              <p style={prose}>CineForce is open to film and media professionals (crew) and production companies or independent producers (clients). Service is currently available in selected regions only. You must be at least 18 years old to register.</p>
 
               <p style={h2Style}>3. Your Account</p>
-              <p style={prose}>You are responsible for maintaining the confidentiality of your account. You agree to provide accurate information and keep your profile up to date. CineVerse reserves the right to suspend accounts that contain false or misleading information.</p>
+              <p style={prose}>You are responsible for maintaining the confidentiality of your account. You agree to provide accurate information and keep your profile up to date. CineForce reserves the right to suspend accounts that contain false or misleading information.</p>
 
               <p style={h2Style}>4. Crew Profiles and Connections</p>
-              <p style={prose}>Crew profiles are publicly visible. Contact details are only shared with clients after a connection request is accepted. CineVerse does not guarantee employment or gig placement and is not a party to any agreement between crew and clients.</p>
+              <p style={prose}>Crew profiles are publicly visible. Contact details are only shared with clients after a connection request is accepted. CineForce does not guarantee employment or gig placement and is not a party to any agreement between crew and clients.</p>
 
               <p style={h2Style}>5. Prohibited Conduct</p>
-              <p style={prose}>You may not use CineVerse to harass other users, post false information, circumvent the platform to avoid fees, or violate any applicable law. Violations may result in immediate account termination.</p>
+              <p style={prose}>You may not use CineForce to harass other users, post false information, circumvent the platform to avoid fees, or violate any applicable law. Violations may result in immediate account termination.</p>
 
               <p style={h2Style}>6. Intellectual Property</p>
-              <p style={prose}>You retain ownership of content you post. By posting, you grant CineVerse a non-exclusive license to display your content on the platform for the purpose of operating the service.</p>
+              <p style={prose}>You retain ownership of content you post. By posting, you grant CineForce a non-exclusive license to display your content on the platform for the purpose of operating the service.</p>
 
               <p style={h2Style}>7. Limitation of Liability</p>
-              <p style={prose}>CineVerse is provided &quot;as is.&quot; We are not liable for any loss of income, missed opportunities, or disputes arising from connections made through the platform.</p>
+              <p style={prose}>CineForce is provided &quot;as is.&quot; We are not liable for any loss of income, missed opportunities, or disputes arising from connections made through the platform.</p>
 
               <p style={h2Style}>8. Changes</p>
-              <p style={prose}>We may update these terms at any time. Continued use of CineVerse after changes constitutes acceptance of the updated terms.</p>
+              <p style={prose}>We may update these terms at any time. Continued use of CineForce after changes constitutes acceptance of the updated terms.</p>
 
               <p style={{ ...prose, marginTop: 20, color: MUTED, fontSize: 12 }}>Last updated: May 2026</p>
             </div>
@@ -123,10 +123,10 @@ export default function LegalPage() {
           {active === "Data Privacy Act" && (
             <div>
               <p style={{ ...h2Style, marginTop: 0 }}>Republic Act No. 10173</p>
-              <p style={prose}>CineVerse complies with the Philippine Data Privacy Act of 2012 (RA 10173) and its Implementing Rules and Regulations. This notice explains how we protect your personal information in accordance with Philippine law.</p>
+              <p style={prose}>CineForce complies with the Philippine Data Privacy Act of 2012 (RA 10173) and its Implementing Rules and Regulations. This notice explains how we protect your personal information in accordance with Philippine law.</p>
 
               <p style={h2Style}>Personal Information Controller</p>
-              <p style={prose}>KreativLoops / CineVerse acts as the Personal Information Controller (PIC) for all personal data collected through this platform.</p>
+              <p style={prose}>KreativLoops / CineForce acts as the Personal Information Controller (PIC) for all personal data collected through this platform.</p>
 
               <p style={h2Style}>Data We Collect and Legal Basis</p>
               <p style={prose}>We collect your name, email address, professional role, city, and portfolio information. The legal basis for processing is your consent given at registration and the performance of a contract (providing the platform service).</p>

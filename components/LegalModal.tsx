@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, CheckCircle2, Shield, FileText, Zap } from "lucide-react";
 
-const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
-const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
+const FD = '"Jost", sans-serif';
+const FT = '"Montserrat", sans-serif';
 const AMBER  = "#FFCC00";
 const TEXT   = "#F7F7F2";
 const MUTED  = "#8E8E93";
@@ -158,12 +158,12 @@ export default function LegalModal({ onAgree, onDecline }: {
 
           {/* Beta notice */}
           <Section icon={Zap} color="#FF9F0A" title="Beta Platform Notice">
-            <Bullet>CineVerse is in <Strong>public beta</Strong> — actively under development</Bullet>
+            <Bullet>CineForce is in <Strong>public beta</Strong> — actively under development</Bullet>
             <Bullet>The Platform is <Strong>the first of its kind in the Philippines</Strong> for film and media crew</Bullet>
             <Bullet>Features, pricing, and availability may change before full launch</Bullet>
             <Bullet>The platform is protected under applicable intellectual property laws. Copying, cloning, or reproducing this platform is prohibited</Bullet>
             <Bullet>Service interruptions may occur; data may be migrated as the platform evolves</Bullet>
-            <Bullet>By continuing, you accept the beta nature of this service and agree not to hold KreativLoops or CineVerse liable for beta-related limitations</Bullet>
+            <Bullet>By continuing, you accept the beta nature of this service and agree not to hold KreativLoops or CineForce liable for beta-related limitations</Bullet>
           </Section>
 
           {/* Terms of Use */}
@@ -171,8 +171,8 @@ export default function LegalModal({ onAgree, onDecline }: {
             <Bullet><Strong>Eligibility.</Strong> You must be at least 18 years old and a professional in the film, TV, or media production industry.</Bullet>
             <Bullet><Strong>Truthful information.</Strong> You agree to provide accurate profile details. Fake identities, false credentials, or misleading information will result in removal.</Bullet>
             <Bullet><Strong>Acceptable use.</Strong> No spam, harassment, scraping, or unlawful activity. No impersonation of other individuals or production companies.</Bullet>
-            <Bullet><Strong>Your content.</Strong> Your profile is publicly visible. Contact details are gated — only shared after you accept a connection request. You retain ownership of your content and grant CineVerse a non-exclusive license to display it on the Platform.</Bullet>
-            <Bullet><Strong>No warranties.</Strong> The Platform is provided &quot;as-is&quot; during beta. CineVerse and KreativLoops are not liable for missed opportunities, failed connections, or data loss.</Bullet>
+            <Bullet><Strong>Your content.</Strong> Your profile is publicly visible. Contact details are gated — only shared after you accept a connection request. You retain ownership of your content and grant CineForce a non-exclusive license to display it on the Platform.</Bullet>
+            <Bullet><Strong>No warranties.</Strong> The Platform is provided &quot;as-is&quot; during beta. CineForce and KreativLoops are not liable for missed opportunities, failed connections, or data loss.</Bullet>
             <Bullet><Strong>Account suspension.</Strong> Accounts that violate these terms may be suspended or permanently removed without prior notice.</Bullet>
             <Bullet><Strong>Governing law.</Strong> These Terms are governed by the laws of the Republic of the Philippines. Any disputes are subject to Philippine courts and jurisdiction.</Bullet>
             <Bullet><Strong>Updates.</Strong> We may update these Terms. Continued use after updates constitutes acceptance. Material changes will be communicated via email.</Bullet>
@@ -306,7 +306,7 @@ export default function LegalModal({ onAgree, onDecline }: {
           </button>
 
           <p style={{ fontFamily: FT, fontSize: 11, color: "rgba(255,255,255,0.2)", textAlign: "center", marginTop: 12, lineHeight: 1.6 }}>
-            Declining means you will not be able to use CineVerse. You can return anytime.
+            Declining means you will not be able to use CineForce. You can return anytime.
           </p>
         </div>
       </div>

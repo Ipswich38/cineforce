@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Send, CheckCircle2, Clock, Lock, UserCircle, Zap, MessageSquare } from "lucide-react";
 
-const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
-const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
+const FD = '"Jost", sans-serif';
+const FT = '"Montserrat", sans-serif';
 
 const SURFACE = "#101010";
 const TEXT    = "#F7F7F2";
@@ -20,6 +20,7 @@ type ExistingRequest = { id: string; status: string } | null;
 export default function ConnectButton({
   crewId,
   crewName,
+  crewSlug,
   isOwn,
   existingRequest,
   isLoggedIn,
@@ -27,6 +28,7 @@ export default function ConnectButton({
 }: {
   crewId: string;
   crewName: string;
+  crewSlug: string;
   isOwn: boolean;
   existingRequest: ExistingRequest;
   contactDetails: ContactDetails;
@@ -41,6 +43,17 @@ export default function ConnectButton({
   const [loading,     setLoading]     = useState(false);
   const [error,       setError]       = useState("");
   const [reqStatus,   setReqStatus]   = useState(existingRequest?.status ?? "");
+
+  useEffect(() => {
+    if (!isLoggedIn || existingRequest || step !== "idle") return;
+    const intent = new URLSearchParams(window.location.search).get("intent");
+    if (intent === "message") {
+      setStep("form");
+      requestAnimationFrame(() => {
+        document.getElementById("message-crew")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    }
+  }, [isLoggedIn, existingRequest, step]);
 
   // Sync if server re-renders with updated status (e.g. after router.refresh())
   useEffect(() => {
@@ -122,16 +135,16 @@ export default function ConnectButton({
           Locked
         </p>
         <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, marginBottom: 18, lineHeight: 1.55 }}>
-          Log in to request contact.
+          Sign up or log in to message this crew member.
         </p>
-        <Link href="/auth"
+        <Link href={`/auth?intent=join&next=${encodeURIComponent(`/crew/${crewSlug}?intent=message`)}`}
           style={{
             display: "block", padding: "12px", borderRadius: 12,
             background: AMBER, color: "#000",
             fontFamily: FT, fontSize: 15, fontWeight: 600, textAlign: "center",
           }}
           className="transition-all hover:opacity-85">
-          Log in
+          Sign up to message
         </Link>
       </div>
     );
@@ -211,7 +224,7 @@ export default function ConnectButton({
 
   if (step === "form") {
     return (
-      <div>
+      <div id="message-crew">
         <p style={{ fontFamily: FD, fontWeight: 600, fontSize: 15, color: TEXT, marginBottom: 4 }}>
           Message {crewName.split(" ")[0]}
         </p>
@@ -281,10 +294,10 @@ export default function ConnectButton({
       <button onClick={() => setStep("form")}
         style={{
           width: "100%", padding: "13px", borderRadius: 14, border: "none",
-          background: AMBER, color: "#000",
+          background: "#F1F1EE", color: "#111",
           fontFamily: FT, fontSize: 15, fontWeight: 600,
           display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-          boxShadow: "0 4px 20px rgba(255,179,0,0.25)",
+          boxShadow: "0 10px 28px rgba(0,0,0,0.25)",
         }}
         className="transition-all hover:opacity-85 active:scale-[0.98]">
         <MessageSquare size={15} /> Message

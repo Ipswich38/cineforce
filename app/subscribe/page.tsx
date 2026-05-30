@@ -3,9 +3,10 @@ import { createClient } from "@/lib/supabase/server";
 import { MONTHLY_PRICE_PHP } from "@/lib/subscription";
 import Link from "next/link";
 import { ArrowLeft, Check, Heart, Star, Shield, Users } from "lucide-react";
+import BrandLockup from "@/components/BrandLockup";
 
-const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
-const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
+const FD = '"Jost", sans-serif';
+const FT = '"Montserrat", sans-serif';
 
 const BG      = "#000000";
 const SURFACE = "#101010";
@@ -54,9 +55,7 @@ export default async function SubscribePage() {
             <ArrowLeft size={16} />
             <span style={{ fontFamily: FT, fontSize: 14 }}>Dashboard</span>
           </Link>
-          <span style={{ fontFamily: FD, fontWeight: 700, fontSize: 17, color: TEXT, letterSpacing: "-0.02em" }}>
-            CineVerse
-          </span>
+          <BrandLockup size={17} />
           <div style={{ width: 64 }} />
         </div>
       </div>
@@ -93,7 +92,7 @@ export default async function SubscribePage() {
             Founding Members
           </h1>
           <p style={{ fontFamily: FT, fontSize: 15, color: MUTED, lineHeight: 1.65 }}>
-            CineVerse is in beta. Early members get full access at no charge while we build and improve the platform together.
+            CineForce is in beta. Early members get full access at no charge while we build and improve the platform together.
           </p>
         </div>
 
@@ -128,7 +127,7 @@ export default async function SubscribePage() {
             </p>
           </div>
           <p style={{ fontFamily: FT, fontSize: 14, color: MUTED, lineHeight: 1.65, marginBottom: 18 }}>
-            No payment required. But if CineVerse is useful to you and your work, you are welcome to contribute any amount you decide. Every peso goes directly to development.
+            No payment required. But if CineForce is useful to you and your work, you are welcome to contribute any amount you decide. Every peso goes directly to development.
           </p>
           <div style={{
             padding: "16px", borderRadius: 14,
@@ -153,7 +152,7 @@ export default async function SubscribePage() {
             At official launch
           </p>
           <p style={{ fontFamily: FT, fontSize: 14, color: TEXT, lineHeight: 1.65, marginBottom: 10 }}>
-            When CineVerse launches publicly, the plan will be{" "}
+            When CineForce launches publicly, the plan will be{" "}
             <strong style={{ color: AMBER }}>₱{MONTHLY_PRICE_PHP}/month</strong> with a 14-day free trial for new members.
           </p>
           <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, lineHeight: 1.6 }}>

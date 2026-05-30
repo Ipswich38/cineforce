@@ -4,11 +4,13 @@ import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { ArrowLeft, BriefcaseBusiness, Clapperboard, Users } from "lucide-react";
+import { ArrowLeft, BriefcaseBusiness, Users } from "lucide-react";
 import LegalModal, { hasAgreedToTerms, recordAgreement } from "@/components/LegalModal";
+import BrandLockup from "@/components/BrandLockup";
+import BrandMark from "@/components/BrandMark";
 
-const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
-const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
+const FD = '"Jost", sans-serif';
+const FT = '"Montserrat", sans-serif';
 
 const BG     = "#000000";
 const TEXT   = "#F7F7F2";
@@ -108,8 +110,8 @@ function AuthPageInner() {
           style={{ display: "flex", alignItems: "center", gap: 8, color: MUTED }}
           className="hover:opacity-70 transition-opacity">
           <ArrowLeft size={15} />
-          <Clapperboard size={15} style={{ color: AMBER }} strokeWidth={2} />
-          <span style={{ fontFamily: FD, fontWeight: 700, fontSize: 16, color: TEXT, letterSpacing: "-0.02em" }}>CineVerse</span>
+          <BrandMark size={22} />
+          <BrandLockup size={16} />
         </Link>
       </div>
 
@@ -139,7 +141,7 @@ function AuthPageInner() {
                   background: "rgba(255,179,0,0.1)", border: "1px solid rgba(255,179,0,0.2)",
                   display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24,
                 }}>
-                  <Clapperboard size={21} style={{ color: AMBER }} strokeWidth={1.8} />
+                  <BrandMark size={28} />
                 </div>
 
                 {/* Tab switcher */}
@@ -170,7 +172,7 @@ function AuthPageInner() {
                 <p style={{ fontFamily: FT, fontSize: 15, color: MUTED, lineHeight: 1.55, marginBottom: 28 }}>
                   {tab === "signin"
                     ? "Manage your card and incoming requests."
-                    : "Choose how you plan to use CineVerse before signing up."}
+                    : "Choose how you plan to use CineForce before signing up."}
                 </p>
 
                 {error && (
@@ -252,7 +254,7 @@ function AuthPageInner() {
                 </button>
 
                 <p style={{ fontFamily: FT, fontSize: 14, color: "rgba(255,255,255,0.35)", textAlign: "center", marginTop: 24 }}>
-                  {tab === "signin" ? "New to CineVerse?" : "Already a member?"}
+                  {tab === "signin" ? "New to CineForce?" : "Already a member?"}
                   {" "}
                   <button
                     onClick={() => { setTab(tab === "signin" ? "join" : "signin"); setError(""); }}

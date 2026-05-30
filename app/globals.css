@@ -1,9 +1,69 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Jost";
+  font-style: normal;
+  font-weight: 400;
+  font-display: fallback;
+  src:
+    url("https://rustans.com/cdn/fonts/jost/jost_n4.d47a1b6347ce4a4c9f437608011273009d91f2b7.woff2") format("woff2"),
+    url("https://rustans.com/cdn/fonts/jost/jost_n4.791c46290e672b3f85c3d1c651ef2efa3819eadd.woff") format("woff");
+}
+
+@font-face {
+  font-family: "Jost";
+  font-style: italic;
+  font-weight: 400;
+  font-display: fallback;
+  src:
+    url("https://rustans.com/cdn/fonts/jost/jost_i4.b690098389649750ada222b9763d55796c5283a5.woff2") format("woff2"),
+    url("https://rustans.com/cdn/fonts/jost/jost_i4.fd766415a47e50b9e391ae7ec04e2ae25e7e28b0.woff") format("woff");
+}
+
+@font-face {
+  font-family: "Montserrat";
+  font-style: normal;
+  font-weight: 400;
+  font-display: fallback;
+  src:
+    url("https://rustans.com/cdn/fonts/montserrat/montserrat_n4.81949fa0ac9fd2021e16436151e8eaa539321637.woff2") format("woff2"),
+    url("https://rustans.com/cdn/fonts/montserrat/montserrat_n4.a6c632ca7b62da89c3594789ba828388aac693fe.woff") format("woff");
+}
+
+@font-face {
+  font-family: "Montserrat";
+  font-style: italic;
+  font-weight: 400;
+  font-display: fallback;
+  src:
+    url("https://rustans.com/cdn/fonts/montserrat/montserrat_i4.5a4ea298b4789e064f62a29aafc18d41f09ae59b.woff2") format("woff2"),
+    url("https://rustans.com/cdn/fonts/montserrat/montserrat_i4.072b5869c5e0ed5b9d2021e4c2af132e16681ad2.woff") format("woff");
+}
+
+@font-face {
+  font-family: "Montserrat";
+  font-style: normal;
+  font-weight: 700;
+  font-display: fallback;
+  src:
+    url("https://rustans.com/cdn/fonts/montserrat/montserrat_n7.3c434e22befd5c18a6b4afadb1e3d77c128c7939.woff2") format("woff2"),
+    url("https://rustans.com/cdn/fonts/montserrat/montserrat_n7.5d9fa6e2cae713c8fb539a9876489d86207fe957.woff") format("woff");
+}
+
+@font-face {
+  font-family: "Montserrat";
+  font-style: italic;
+  font-weight: 700;
+  font-display: fallback;
+  src:
+    url("https://rustans.com/cdn/fonts/montserrat/montserrat_i7.a0d4a463df4f146567d871890ffb3c80408e7732.woff2") format("woff2"),
+    url("https://rustans.com/cdn/fonts/montserrat/montserrat_i7.f6ec9f2a0681acc6f8152c40921d2a4d2e1a2c78.woff") format("woff");
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Montserrat", sans-serif;
 }
 
 :root {
@@ -42,17 +102,17 @@ html {
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  font-family: "Montserrat", sans-serif;
   line-height: 1.5;
   min-height: 100dvh;
   zoom: 0.9;
 }
 
 h1, h2, h3, h4 {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
-  letter-spacing: -0.024em;
+  font-family: "Jost", sans-serif;
+  letter-spacing: 0;
   line-height: 1.08;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 a { color: inherit; text-decoration: none; touch-action: manipulation; }

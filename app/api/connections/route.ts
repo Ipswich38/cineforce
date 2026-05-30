@@ -20,17 +20,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "This crew member is not accepting requests right now." }, { status: 400 });
   }
 
-  const { error } = await supabase.from("connection_requests").insert({
+  const admin = createAdminClient();
+  const initialMessage = message?.trim() || null;
+
+  const { data: connection, error } = await admin.from("connection_requests").insert({
     client_id: user.id,
     crew_id,
     project_title: project_title.trim(),
-    message: message?.trim() || null,
-  });
+    message: initialMessage,
+  }).select("id").single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  if (connection && initialMessage) {
+    await admin.from("messages").insert({
+      connection_id: connection.id,
+      sender_id: user.id,
+      body: initialMessage,
+    });
+  }
 
   // Non-fatal: email notification to crew
   try {
-    const admin = createAdminClient();
     const [{ data: crewProfile }, { data: crewUserData }] = await Promise.all([
       admin.from("profiles").select("display_name").eq("id", crew_id).single(),
       admin.auth.admin.getUserById(crew_id),
@@ -41,7 +51,7 @@ export async function POST(req: NextRequest) {
         crewEmail: crewUserData.user.email,
         clientEmail: user.email ?? "Someone",
         projectTitle: project_title.trim(),
-        message: message?.trim() || null,
+        message: initialMessage,
       });
     }
   } catch { /* non-fatal */ }
@@ -59,12 +69,46 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
 
-  const { error } = await supabase
+  const admin = createAdminClient();
+
+  const { data: conn, error: lookupError } = await admin
+    .from("connection_requests")
+    .select("id, client_id, crew_id, message, status")
+    .eq("id", id)
+    .single();
+
+  if (lookupError || !conn) {
+    return NextResponse.json({ error: "Connection request not found" }, { status: 404 });
+  }
+
+  if (conn.crew_id !== user.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
+
+  const { error } = await admin
     .from("connection_requests")
     .update({ status, updated_at: new Date().toISOString() })
-    .eq("id", id)
-    .eq("crew_id", user.id);
+    .eq("id", id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  if (status === "accepted" && conn.message) {
+    const { data: existingMessage } = await admin
+      .from("messages")
+      .select("id")
+      .eq("connection_id", id)
+      .eq("sender_id", conn.client_id)
+      .eq("body", conn.message)
+      .maybeSingle();
+
+    if (!existingMessage) {
+      await admin.from("messages").insert({
+        connection_id: id,
+        sender_id: conn.client_id,
+        body: conn.message,
+      });
+    }
+  }
+
   return NextResponse.json({ ok: true });
 }

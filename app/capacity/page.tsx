@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 
-const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
-const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
+const FD = '"Jost", sans-serif';
+const FT = '"Montserrat", sans-serif';
 
 export default function CapacityPage() {
   const [seconds, setSeconds] = useState(60);
@@ -50,7 +50,7 @@ export default function CapacityPage() {
           fontFamily: FT, fontSize: 16, color: "#8E8E93",
           lineHeight: 1.7, marginBottom: 32,
         }}>
-          CineVerse is experiencing high traffic right now. We&apos;ll automatically try again in a moment.
+          CineForce is experiencing high traffic right now. We&apos;ll automatically try again in a moment.
         </p>
 
         {/* Countdown ring */}

@@ -1,6 +1,6 @@
-# CineVerse
+# CineForce
 
-**Version:** 0.19.0-beta.1 · **Status:** Beta · **Live:** https://cineverseph.vercel.app
+**Version:** 0.19.0-beta.1 · **Status:** Beta · **Live:** https://cineforce.vercel.app
 
 A professional crew marketplace for the Philippine film and television industry. Crew members build a discoverable profile card; producers and directors find and connect with vetted crew — fast.
 
@@ -53,7 +53,7 @@ Database schema lives in `supabase/schema.sql`. Run it once in the Supabase SQL 
 
 ```bash
 pnpm build        # verify build passes
-vercel --prod     # deploy to cineverseph.vercel.app
+vercel --prod     # deploy to cineforce.vercel.app
 ```
 
 See `docs/05_DEPLOYMENT.md` for the full versioning workflow.

@@ -1,11 +1,13 @@
 export const dynamic = "force-dynamic";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Clapperboard, Lock, MapPin, Search, Sparkles, UserRound } from "lucide-react";
+import { ArrowLeft, ArrowRight, Lock, MapPin, Search, Sparkles, UserRound } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { TIERS, getTierForCount } from "@/lib/foundingTiers";
+import BrandLockup from "@/components/BrandLockup";
+import BrandMark from "@/components/BrandMark";
 
-const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
-const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
+const FD = '"Jost", sans-serif';
+const FT = '"Montserrat", sans-serif';
 
 const BG      = "#000000";
 const SURFACE = "#101010";
@@ -50,8 +52,8 @@ export default async function AboutPage() {
         <div className="app-container topbar-inner">
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, color: TEXT }}>
             <ArrowLeft size={16} style={{ color: MUTED }} />
-            <Clapperboard size={16} style={{ color: AMBER }} />
-            <span style={{ fontFamily: FD, fontWeight: 700, fontSize: 16 }}>CineVerse</span>
+            <BrandMark size={22} />
+            <BrandLockup size={16} />
           </Link>
           <div className="nav-actions">
             <Link href="/search" style={{ fontFamily: FT, fontSize: 14, color: MUTED }}>Find</Link>
@@ -74,7 +76,7 @@ export default async function AboutPage() {
             </h1>
           </div>
           <p style={{ fontFamily: FT, color: MUTED, fontSize: 17, lineHeight: 1.65 }}>
-            Whether you&apos;re hiring or available, CineVerse connects productions with the right crew, equipment, and locations. Fast, professional, and built around real experience.
+            Whether you&apos;re hiring or available, CineForce connects productions with the right crew, equipment, and locations. Fast, professional, and built around real experience.
           </p>
         </div>
       </section>
@@ -145,7 +147,7 @@ export default async function AboutPage() {
         </h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "clamp(14px,2.5vw,24px)", marginBottom: "clamp(28px,4vw,40px)" }}>
           {[
-            { num: "01", icon: "🔍", title: "Search by role and date", desc: "Pick a role, set your project dates, and choose a city. CineVerse shows crew who are actually available." },
+            { num: "01", icon: "🔍", title: "Search by role and date", desc: "Pick a role, set your project dates, and choose a city. CineForce shows crew who are actually available." },
             { num: "02", icon: "🃏", title: "Browse profile cards",    desc: "See rate, experience, specializations, and availability at a glance. No cold DMs into the void." },
             { num: "03", icon: "💬", title: "Connect and chat",        desc: "Send a connection request with your project details. Once accepted, chat directly inside the app." },
           ].map((s) => (

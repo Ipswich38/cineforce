@@ -10,8 +10,8 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
-const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
-const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
+const FD = '"Jost", sans-serif';
+const FT = '"Montserrat", sans-serif';
 const AMBER  = "#FFCC00";
 const MUTED  = "#636366";
 const BORDER = "rgba(255,255,255,0.07)";
@@ -170,7 +170,7 @@ export default function BottomNav() {
                 Your next set is a tap away.
               </p>
               <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, lineHeight: 1.5 }}>
-                Join or log in to manage your CineVerse card.
+                Join or log in to manage your CineForce card.
               </p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>

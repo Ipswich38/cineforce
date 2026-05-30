@@ -3,9 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Send, CheckCircle2 } from "lucide-react";
+import BrandLockup from "@/components/BrandLockup";
 
-const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
-const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
+const FD = '"Jost", sans-serif';
+const FT = '"Montserrat", sans-serif';
 
 const BG      = "#000000";
 const SURFACE = "#101010";
@@ -76,9 +77,7 @@ export default function HelpPage() {
             <ArrowLeft size={16} />
             <span style={{ fontFamily: FT, fontSize: 14 }}>Dashboard</span>
           </Link>
-          <span style={{ fontFamily: FD, fontWeight: 700, fontSize: 17, color: TEXT, letterSpacing: "-0.02em" }}>
-            CineVerse
-          </span>
+          <BrandLockup size={17} />
           <div style={{ width: 64 }} />
         </div>
       </div>

@@ -5,8 +5,8 @@ import Link from "next/link";
 import { ArrowLeft, Send, MessageSquare, Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
-const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
-const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
+const FD = '"Jost", sans-serif';
+const FT = '"Montserrat", sans-serif';
 const BG      = "#000000";
 const SURFACE = "#0C0C0F";
 const TEXT    = "#F7F7F2";
@@ -20,6 +20,8 @@ type ConversationItem = {
   id: string;
   client_id: string;
   crew_id: string;
+  status: string;
+  requestMessage: string | null;
   project_title: string | null;
   updated_at: string | null;
   other: {
@@ -73,8 +75,10 @@ export default function MessagesClient({
 }) {
   const [activeId,     setActiveId]     = useState<string | null>(null);
   const [messages,     setMessages]     = useState<Message[]>([]);
+  const [items,        setItems]        = useState(conversations);
   const [input,        setInput]        = useState("");
   const [sending,      setSending]      = useState(false);
+  const [accepting,    setAccepting]    = useState(false);
   const [loadingChat,  setLoadingChat]  = useState(false);
   const [isMobile,     setIsMobile]     = useState(false);
 
@@ -94,7 +98,7 @@ export default function MessagesClient({
   // Auto-select from ?thread= URL param
   useEffect(() => {
     const thread = new URLSearchParams(window.location.search).get("thread");
-    if (thread && conversations.some((c) => c.id === thread)) setActiveId(thread);
+    if (thread && items.some((c) => c.id === thread)) setActiveId(thread);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load full message history for a conversation
@@ -154,10 +158,12 @@ export default function MessagesClient({
   useEffect(() => {
     if (pollRef.current) clearInterval(pollRef.current);
     if (!activeId) { setMessages([]); return; }
+    const active = items.find((c) => c.id === activeId);
+    if (active?.status !== "accepted") { setMessages([]); return; }
     loadMessages(activeId);
     pollRef.current = setInterval(() => pollMessages(activeId), 10000);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
-  }, [activeId, loadMessages, pollMessages]);
+  }, [activeId, items, loadMessages, pollMessages]);
 
   // Scroll to newest message
   useEffect(() => {
@@ -187,11 +193,27 @@ export default function MessagesClient({
     inputRef.current?.focus();
   }
 
+  async function acceptRequest() {
+    if (!activeId || accepting) return;
+    setAccepting(true);
+    const res = await fetch("/api/connections", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: activeId, status: "accepted" }),
+    });
+    if (res.ok) {
+      const now = new Date().toISOString();
+      setItems((prev) => prev.map((c) => c.id === activeId ? { ...c, status: "accepted", updated_at: now } : c));
+    }
+    setAccepting(false);
+  }
+
   function handleKey(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
   }
 
-  const activeConv = conversations.find((c) => c.id === activeId) ?? null;
+  const activeConv = items.find((c) => c.id === activeId) ?? null;
+  const isPendingRequest = activeConv?.status === "pending";
 
   // Build rendered list with date separators
   type Sep = { type: "sep"; label: string; key: string };
@@ -262,13 +284,13 @@ export default function MessagesClient({
                   Conversations
                 </h2>
                 <p style={{ fontFamily: FT, fontSize: 12, color: MUTED }}>
-                  {conversations.length} accepted connection{conversations.length !== 1 ? "s" : ""}
+                  {items.length} inbox item{items.length !== 1 ? "s" : ""}
                 </p>
               </div>
             )}
 
             <div style={{ flex: 1, overflowY: "auto", paddingBottom: isMobile ? `calc(${NAV_H} + env(safe-area-inset-bottom, 0px))` : 0 }}>
-              {conversations.length === 0 ? (
+              {items.length === 0 ? (
                 <div style={{ padding: "48px 20px", textAlign: "center" }}>
                   <div style={{
                     width: 52, height: 52, borderRadius: "50%", margin: "0 auto 16px",
@@ -277,9 +299,9 @@ export default function MessagesClient({
                   }}>
                     <MessageSquare size={22} style={{ color: MUTED }} />
                   </div>
-                  <p style={{ fontFamily: FD, fontWeight: 700, fontSize: 15, color: TEXT, marginBottom: 6 }}>No conversations yet</p>
+                  <p style={{ fontFamily: FD, fontWeight: 700, fontSize: 15, color: TEXT, marginBottom: 6 }}>Inbox is empty</p>
                   <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, lineHeight: 1.6, maxWidth: 240, margin: "0 auto 16px" }}>
-                    Conversations open after a crew member accepts a project request.
+                    Project requests and accepted conversations will appear here.
                   </p>
                   {accountType === "client" && (
                     <Link href="/search" style={{
@@ -292,11 +314,12 @@ export default function MessagesClient({
                     </Link>
                   )}
                 </div>
-              ) : conversations.map((conv) => {
+              ) : items.map((conv) => {
                 const isActive = conv.id === activeId;
                 const name     = conv.other.display_name;
                 const last     = conv.lastMessage;
                 const isMine   = last?.sender_id === userId;
+                const isPending = conv.status === "pending";
                 return (
                   <button
                     key={conv.id}
@@ -329,6 +352,18 @@ export default function MessagesClient({
                         <p style={{ fontFamily: FD, fontWeight: 700, fontSize: 14, color: TEXT, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
                           {name}
                         </p>
+                        {isPending && (
+                          <span style={{
+                            fontFamily: FT, fontSize: 10, fontWeight: 700, color: AMBER,
+                            background: "rgba(255,204,0,0.1)",
+                            border: "1px solid rgba(255,204,0,0.18)",
+                            borderRadius: 999,
+                            padding: "2px 6px",
+                            flexShrink: 0,
+                          }}>
+                            New
+                          </span>
+                        )}
                         <span style={{ fontFamily: FT, fontSize: 11, color: MUTED, flexShrink: 0 }}>
                           {relativeTime(last?.created_at ?? conv.updated_at)}
                         </span>
@@ -337,7 +372,9 @@ export default function MessagesClient({
                         {conv.project_title ?? "Project"}
                       </p>
                       <p style={{ fontFamily: FT, fontSize: 12, color: "rgba(247,247,242,0.5)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {last ? `${isMine ? "You: " : ""}${last.body}` : "Chat is open — say hello"}
+                        {isPending
+                          ? (conv.requestMessage ? `Request: ${conv.requestMessage}` : "New project request")
+                          : last ? `${isMine ? "You: " : ""}${last.body}` : "Chat is open - say hello"}
                       </p>
                     </div>
                   </button>
@@ -411,7 +448,7 @@ export default function MessagesClient({
                 {/* Messages scroll area */}
                 <div style={{ flex: 1, overflowY: "auto", padding: "20px 16px 8px" }}>
 
-                  {/* System message — connection accepted */}
+                  {/* System message — connection/request status */}
                   <div style={{ textAlign: "center", marginBottom: 28 }}>
                     <div style={{
                       display: "inline-block", textAlign: "left",
@@ -421,17 +458,60 @@ export default function MessagesClient({
                       maxWidth: 340,
                     }}>
                       <p style={{ fontFamily: FD, fontWeight: 700, fontSize: 12, color: AMBER, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>
-                        Connection Accepted
+                        {isPendingRequest ? "Project Request" : "Connection Accepted"}
                       </p>
                       <p style={{ fontFamily: FT, fontSize: 13, color: "rgba(247,247,242,0.7)", lineHeight: 1.55 }}>
-                        You and <span style={{ color: TEXT, fontWeight: 600 }}>{activeConv.other.display_name}</span> are now connected for{" "}
-                        <span style={{ color: TEXT }}>{activeConv.project_title ?? "this project"}</span>.
-                        Keep all communication here inside CineVerse.
+                        {isPendingRequest ? (
+                          <>
+                            <span style={{ color: TEXT, fontWeight: 600 }}>{activeConv.other.display_name}</span> sent a request for{" "}
+                            <span style={{ color: TEXT }}>{activeConv.project_title ?? "this project"}</span>. Accept it to open chat.
+                          </>
+                        ) : (
+                          <>
+                            You and <span style={{ color: TEXT, fontWeight: 600 }}>{activeConv.other.display_name}</span> are now connected for{" "}
+                            <span style={{ color: TEXT }}>{activeConv.project_title ?? "this project"}</span>.
+                            Keep all communication here inside CineForce.
+                          </>
+                        )}
                       </p>
+                      {isPendingRequest && activeConv.requestMessage && (
+                        <p style={{
+                          marginTop: 12,
+                          paddingTop: 12,
+                          borderTop: "1px solid rgba(255,204,0,0.12)",
+                          fontFamily: FT,
+                          fontSize: 13,
+                          color: TEXT,
+                          lineHeight: 1.55,
+                        }}>
+                          {activeConv.requestMessage}
+                        </p>
+                      )}
+                      {isPendingRequest && (
+                        <button
+                          onClick={acceptRequest}
+                          disabled={accepting}
+                          style={{
+                            marginTop: 14,
+                            width: "100%",
+                            border: "none",
+                            borderRadius: 12,
+                            padding: "11px 14px",
+                            background: accepting ? "rgba(255,204,0,0.6)" : AMBER,
+                            color: "#000",
+                            fontFamily: FT,
+                            fontSize: 13,
+                            fontWeight: 800,
+                            cursor: accepting ? "not-allowed" : "pointer",
+                          }}
+                        >
+                          {accepting ? "Accepting..." : "Accept and open chat"}
+                        </button>
+                      )}
                     </div>
                   </div>
 
-                  {loadingChat ? (
+                  {isPendingRequest ? null : loadingChat ? (
                     <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, textAlign: "center", paddingTop: 16 }}>Loading…</p>
                   ) : rendered.length === 0 ? (
                     <p style={{ fontFamily: FT, fontSize: 13, color: MUTED, textAlign: "center", paddingTop: 16 }}>
@@ -472,6 +552,7 @@ export default function MessagesClient({
                 </div>
 
                 {/* Input bar */}
+                {!isPendingRequest && (
                 <div style={{
                   background: "rgba(12,12,15,0.97)",
                   borderTop: `1px solid ${BORDER}`,
@@ -519,6 +600,7 @@ export default function MessagesClient({
                     <Send size={18} style={{ color: input.trim() ? "#000" : MUTED }} />
                   </button>
                 </div>
+                )}
               </>
             )}
           </div>

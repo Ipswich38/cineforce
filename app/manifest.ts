@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "CineVerse",
-    short_name: "CineVerse",
+    name: "CineForce",
+    short_name: "CineForce",
     description: "Your Next Set Is a Tap Away.",
     start_url: "/",
     display: "standalone",

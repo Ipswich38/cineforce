@@ -3,8 +3,8 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-const FD     = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
-const FT     = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
+const FD     = '"Jost", sans-serif';
+const FT     = '"Montserrat", sans-serif';
 const BG     = "#000000";
 const TEXT   = "#F7F7F2";
 const MUTED  = "#8E8E93";

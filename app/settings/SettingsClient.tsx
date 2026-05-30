@@ -10,8 +10,8 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { ROLES, AVAILABILITY, EXPERIENCE_LEVELS, PH_REGIONS, RATE_UNITS } from "@/lib/constants";
 
-const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
-const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
+const FD = '"Jost", sans-serif';
+const FT = '"Montserrat", sans-serif';
 const BG = "#000"; const TEXT = "#F7F7F2"; const MUTED = "#8E8E93";
 const AMBER = "#FFCC00"; const BORDER = "rgba(255,255,255,0.07)"; const SURFACE = "#101010";
 

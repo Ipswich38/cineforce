@@ -6,10 +6,12 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ROLES, AVAILABILITY, PH_REGIONS, PH_LOCATIONS } from "@/lib/constants";
-import { Search, X, Clapperboard, Users, ChevronLeft, ChevronRight, MessageSquare } from "lucide-react";
+import { Search, X, Users, ChevronLeft, ChevronRight, MessageSquare } from "lucide-react";
+import BrandMark from "@/components/BrandMark";
+import { publicCrewInitials, publicCrewName } from "@/lib/publicName";
 
-const FD = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
-const FT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif';
+const FD = '"Jost", sans-serif';
+const FT = '"Montserrat", sans-serif';
 
 const BG      = "#000000";
 const BG_ALT  = "#080808";
@@ -29,85 +31,108 @@ type Profile = {
   role: string; specializations: string[]; experience_level: string;
   city: string; availability: string; rate_min: number | null; rate_max: number | null;
   rate_unit: string | null; bio: string | null;
+  projectsMade?: number;
 };
 
 const AVATAR_COLORS  = ["#0F1A2E", "#1A0F2E", "#2E0F0F", "#0F2E1A", "#1A2E0F", "#2E1A0F"];
 const AVATAR_ACCENTS = ["#4A9EFF", "#AF52DE", "#FF453A", "#32D74B", "#A8D934", "#FF9F0A"];
+const EXPERIENCE_YEARS: Record<string, number> = {
+  entry: 1,
+  mid: 4,
+  senior: 9,
+  expert: 13,
+};
+
+function experienceYears(level: string) {
+  return EXPERIENCE_YEARS[level] ?? 1;
+}
+
+function bioQuote(bio: string | null) {
+  const text = (bio ?? "").trim().replace(/\s+/g, " ");
+  if (!text) return "Available for the right production.";
+  const firstSentence = text.split(/(?<=[.!?])\s+/)[0] ?? text;
+  return firstSentence.length > 112 ? `${firstSentence.slice(0, 109).trimEnd()}...` : firstSentence;
+}
 
 
 /* ─── Crew Card ─── */
 function CrewCard({ p }: { p: Profile }) {
   const roleData  = ROLES.find((r) => r.id === p.role);
-  const availData = AVAILABILITY.find((a) => a.id === p.availability);
   const idx       = p.display_name.charCodeAt(0) % AVATAR_COLORS.length;
   const accent    = AVATAR_ACCENTS[idx];
   const bg        = AVATAR_COLORS[idx];
-  const initials  = p.display_name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
-  const availColor = availData?.color ?? MUTED;
-  const bio = p.bio?.trim() || `${roleData?.label ?? "Film crew"} based in ${p.city}.`;
+  const publicName = publicCrewName(p.display_name);
+  const initials  = publicCrewInitials(p.display_name);
+  const quote = bioQuote(p.bio);
+  const projectsMade = (p as Profile & { projectsMade?: number }).projectsMade ?? 0;
+  const yearsExp = experienceYears(p.experience_level);
 
   return (
     <div
       className="group transition-all active:scale-[0.99]"
       style={{
-        background: "#202020",
-        border: "1px solid rgba(255,255,255,0.08)",
-        borderRadius: 26,
+        background: "#050505",
+        border: `1px solid ${BORDER}`,
+        borderRadius: 24,
         overflow: "hidden",
-        padding: 10,
-        boxShadow: "0 20px 50px rgba(0,0,0,0.28)",
+        boxShadow: "0 18px 60px rgba(0,0,0,0.35)",
       }}>
-      <Link href={`/crew/${p.slug}`} style={{ textDecoration: "none", display: "block" }}>
-        <div style={{
-          position: "relative",
-          aspectRatio: "1 / 1",
-          borderRadius: 22,
-          overflow: "hidden",
-          background: bg,
-        }}>
-          {p.avatar_url
-            ? <img src={p.avatar_url} alt={p.display_name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-            : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: FD, fontSize: 44, fontWeight: 800, color: accent }}>{initials}</div>
-          }
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 45%, rgba(0,0,0,0.72) 100%)" }} />
-        </div>
-
-        <div style={{ padding: "18px 12px 12px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-            <p style={{ fontFamily: FD, fontWeight: 760, fontSize: 22, color: TEXT, letterSpacing: "-0.03em", lineHeight: 1.1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {p.display_name}
-            </p>
-            <span style={{
-              width: 24, height: 24, borderRadius: "50%",
-              background: "#F4F4F4", color: "#111",
-              display: "inline-flex", alignItems: "center", justifyContent: "center",
-              fontFamily: FT, fontSize: 15, fontWeight: 900, flexShrink: 0,
-            }}>✓</span>
+      <Link href={`/crew/${p.slug}`} style={{ textDecoration: "none", display: "block", color: "inherit" }}>
+        <div style={{ position: "relative", width: "100%", minHeight: 372, display: "flex", flexDirection: "column" }}>
+          <div style={{ position: "relative", flex: "1 1 54%", minHeight: 220, background: bg, overflow: "hidden" }}>
+            {p.avatar_url
+              ? <img src={p.avatar_url} alt={publicName} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
+              : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: FD, fontSize: 44, fontWeight: 800, color: accent }}>{initials}</div>
+            }
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.2) 52%, rgba(0,0,0,0.5) 100%)" }} />
+            <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "46%", background: "linear-gradient(to bottom, transparent, rgba(0,0,0,0.64) 45%, rgba(0,0,0,0.9) 100%)" }} />
           </div>
 
-          <p style={{ fontFamily: FT, fontSize: 14, color: "rgba(247,247,242,0.62)", lineHeight: 1.55, marginTop: 10, minHeight: 44 }}>
-            {bio.length > 96 ? `${bio.slice(0, 93)}...` : bio}
-          </p>
+          <div style={{ flex: "0 0 auto", background: "#050505", padding: "14px 16px 14px" }}>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
+              <div style={{ minWidth: 0 }}>
+                <h2 style={{ fontFamily: FD, fontWeight: 700, fontSize: 24, lineHeight: 0.95, letterSpacing: "-0.04em", color: TEXT, overflowWrap: "anywhere" }}>
+                  {publicName}
+                </h2>
+                <p style={{ fontFamily: FT, fontSize: 12.5, color: "rgba(255,255,255,0.72)", marginTop: 8, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  @{p.slug}
+                </p>
+                <p style={{ fontFamily: FT, fontSize: 12.5, color: "rgba(255,255,255,0.55)", marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {roleData?.label ?? p.role} · {p.city}
+                </p>
+              </div>
+              <span style={{ fontFamily: FT, fontSize: 14, color: "rgba(255,255,255,0.78)", whiteSpace: "nowrap", marginTop: 3 }}>
+                See profile
+              </span>
+            </div>
+
+            <p style={{ fontFamily: FT, fontSize: 13.5, color: "rgba(255,255,255,0.8)", lineHeight: 1.5, marginTop: 12, maxWidth: 500 }}>
+              &ldquo;{quote}&rdquo;
+            </p>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 14, marginTop: 14 }}>
+              <div>
+                <p style={{ fontFamily: FD, fontWeight: 700, fontSize: 22, lineHeight: 1, color: TEXT }}>{projectsMade}</p>
+                <p style={{ fontFamily: FT, fontSize: 12.5, color: "rgba(255,255,255,0.66)", marginTop: 4 }}>Projects Made</p>
+              </div>
+              <div>
+                <p style={{ fontFamily: FD, fontWeight: 700, fontSize: 22, lineHeight: 1, color: TEXT }}>{yearsExp}</p>
+                <p style={{ fontFamily: FT, fontSize: 12.5, color: "rgba(255,255,255,0.66)", marginTop: 4 }}>Years Experience</p>
+              </div>
+            </div>
+          </div>
         </div>
       </Link>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 12px 14px" }}>
-        <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 7 }}>
-          <span style={{ width: 8, height: 8, borderRadius: "50%", background: availColor, flexShrink: 0 }} />
-          <span style={{ fontFamily: FT, fontSize: 13, fontWeight: 700, color: availColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {availData?.label ?? "Available"}
-          </span>
-        </div>
-        <span style={{ fontFamily: FT, fontSize: 12, color: MUTED, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 96 }}>
-          {roleData?.label ?? p.role}
-        </span>
-        <Link href={`/crew/${p.slug}`}
+      <div style={{ padding: "0 16px 14px" }}>
+        <Link href={`/crew/${p.slug}?intent=message`}
           style={{
             flexShrink: 0,
             display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-            minHeight: 42, padding: "0 16px", borderRadius: 999,
-            background: "#F4F4F4", color: "#000", textDecoration: "none",
+            minHeight: 40, padding: "0 16px", borderRadius: 14,
+            background: "#F1F1EE", color: "#111", textDecoration: "none",
             fontFamily: FT, fontSize: 14, fontWeight: 800,
+            boxShadow: "0 10px 28px rgba(0,0,0,0.25)",
           }}
           className="transition-all hover:opacity-90 active:scale-[0.98]">
           <MessageSquare size={15} /> Message
@@ -169,7 +194,20 @@ function SearchContent() {
         ...p,
         specializations: (p.profile_specializations as { name: string }[] ?? []).map((s) => s.name),
       }));
-      setProfiles(list as Profile[]);
+      const profileList = list as Profile[];
+      const ids = profileList.map((p) => p.id);
+      const projectsByProfile = new Map<string, number>();
+      if (ids.length > 0) {
+        const { data: creditRows } = await supabase
+          .from("credits")
+          .select("profile_id")
+          .in("profile_id", ids);
+        for (const row of creditRows ?? []) {
+          const pid = (row as { profile_id: string }).profile_id;
+          projectsByProfile.set(pid, (projectsByProfile.get(pid) ?? 0) + 1);
+        }
+      }
+      setProfiles(profileList.map((p) => ({ ...p, projectsMade: projectsByProfile.get(p.id) ?? 0 })));
       setTotal(count ?? list.length);
     } catch {
       setProfiles([]);
@@ -275,7 +313,7 @@ function SearchContent() {
 
           {/* Top bar: logo */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, paddingInline: "calc((100% - min(100% - 32px, 1040px)) / 2)" }}>
-            <Clapperboard size={15} style={{ color: AMBER }} strokeWidth={2} />
+            <BrandMark size={22} />
             <span style={{ fontFamily: FD, fontWeight: 700, fontSize: 16, color: TEXT, letterSpacing: "-0.02em" }}>
               Find Crew
             </span>
@@ -507,7 +545,7 @@ function SearchContent() {
       </div>
 
       {/* ── Results area ── */}
-      <div className="app-container" style={{ paddingTop: 24, paddingBottom: "clamp(40px,6vw,72px)" }}>
+      <div className="app-container" style={{ paddingTop: 24, paddingBottom: "calc(clamp(40px,6vw,72px) + 120px)" }}>
 
         {/* ── Search context banner (from hero) ── */}
         {(roleFilter || cityFilter || dateFrom) && (
@@ -545,10 +583,10 @@ function SearchContent() {
 
         {/* Loading skeleton */}
         {loading && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 340px), 1fr))", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 320px), 1fr))", gap: 12 }}>
             {[...Array(6)].map((_, i) => (
               <div key={i} className="animate-pulse" style={{
-                background: SURFACE, borderRadius: 14, height: 120,
+                background: "#050505", borderRadius: 24, minHeight: 460,
                 border: `1px solid ${BORDER}`, borderLeft: "3px solid rgba(255,255,255,0.08)",
               }} />
             ))}
@@ -590,7 +628,7 @@ function SearchContent() {
         {!loading && profiles.length > 0 && (
           <div style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 280px), 1fr))",
+            gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 320px), 1fr))",
             gap: 16,
           }}>
             {profiles.map((p) => <CrewCard key={p.id} p={p} />)}
