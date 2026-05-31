@@ -25,7 +25,7 @@ export default function BrandLockup({
         letterSpacing: "0.02em",
         marginTop: 3,
       }}>
-        powered by CineVerse
+        powered by Vissionlink
       </span>
     </span>
   );

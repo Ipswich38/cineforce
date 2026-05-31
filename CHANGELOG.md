@@ -12,6 +12,14 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ---
 
+## [0.25.1-beta.1] — 2026-05-31
+
+### Changed
+- **Parent brand → Vissionlink** — "powered by CineVerse" updated to "powered by Vissionlink" in the brand lockup and page/OG titles (CineForce name unchanged).
+- **"Need Gear?" cross-link** now points to the Vissionlink gear store at https://vissionlink.com (was cineverse.store).
+
+---
+
 ## [0.25.0-beta.1] — 2026-05-30
 
 ### Changed

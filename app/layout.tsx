@@ -4,7 +4,7 @@ import BottomNav from "@/components/BottomNav";
 import VersionChecker from "@/components/VersionChecker";
 
 export const metadata: Metadata = {
-  title: "CineForce powered by CineVerse — Your Next Set Is a Tap Away.",
+  title: "CineForce powered by Vissionlink — Your Next Set Is a Tap Away.",
   description: "The Philippines' first on-demand marketplace connecting film and media crew with productions. Find the right people for your project, or find your next gig.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     title: "CineForce",
   },
   openGraph: {
-    title: "CineForce powered by CineVerse",
+    title: "CineForce powered by Vissionlink",
     description: "Your Next Set Is a Tap Away.",
     siteName: "CineForce",
   },

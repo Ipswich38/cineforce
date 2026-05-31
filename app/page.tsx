@@ -83,9 +83,9 @@ function Nav({ onHowClick }: { onHowClick: () => void }) {
               className="transition-colors hover:text-white">
               How it works
             </button>
-            {/* Cross-link to the CineVerse gear store (opens a new tab) */}
+            {/* Cross-link to the Vissionlink gear store (opens a new tab) */}
             <a
-              href="https://www.cineverse.store"
+              href="https://vissionlink.com"
               target="_blank"
               rel="noopener noreferrer"
               style={{ fontFamily: FT, fontSize: 14, fontWeight: 700, color: AMBER }}
