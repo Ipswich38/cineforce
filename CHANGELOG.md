@@ -12,6 +12,13 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ---
 
+## [0.25.2-beta.1] — 2026-06-01
+
+### Changed
+- **Cached public crew profiles** — `/crew/[slug]` now serves its public data (profile, specializations, equipment, credits) from a tag-cached server data layer (`lib/crew-cache.ts`, `unstable_cache`, 5-min window), hitting Supabase only on a cache miss or after a profile edit. Per-user data (auth, connection status, contact details) stays uncached. Profile updates purge the `crew` cache tag — fewer database reads on read-heavy profile pages.
+
+---
+
 ## [0.25.1-beta.1] — 2026-05-31
 
 ### Changed

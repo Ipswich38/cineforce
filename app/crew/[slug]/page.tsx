@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 import { createClient } from "@/lib/supabase/server";
+import { getPublicCrew } from "@/lib/crew-cache";
 import { ROLES, PROJECT_TYPES } from "@/lib/constants";
 import { isSubscriptionActive } from "@/lib/subscription";
 import { notFound } from "next/navigation";
@@ -66,35 +67,27 @@ export default async function CrewProfilePage({ params }: { params: Promise<{ sl
     const { data: { user: authUser } } = await supabase.auth.getUser();
     user = authUser;
 
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("*,profile_specializations(name)")
-      .eq("slug", slug)
-      .single();
+    // Public profile data is served from the cache (see lib/crew-cache.ts).
+    const cached = await getPublicCrew(slug);
 
-    if (profileData) {
+    if (cached) {
       profile = {
-        ...profileData,
-        specializations: (profileData.profile_specializations as { name: string }[] ?? []).map((s) => s.name),
+        ...cached.profile,
+        specializations: cached.specializations,
       } as unknown as Profile;
+      equipment = cached.equipment as typeof equipment;
+      credits = cached.credits as typeof credits;
 
-      const pid = profileData.id as string;
-      const [{ data: eq }, { data: cr }] = await Promise.all([
-        supabase.from("equipment").select("*").eq("profile_id", pid).order("created_at"),
-        supabase.from("credits").select("*").eq("profile_id", pid).order("year", { ascending: false }),
-      ]);
-      equipment = (eq ?? []) as typeof equipment;
-      credits = (cr ?? []) as typeof credits;
+      const pid = cached.profile.id as string;
 
+      // Per-user / gated data stays uncached on the request-scoped client.
       if (user) {
-        const [{ data: reqData }] = await Promise.all([
-          supabase
-            .from("connection_requests")
-            .select("id, status")
-            .eq("client_id", user.id)
-            .eq("crew_id", pid)
-            .single(),
-        ]);
+        const { data: reqData } = await supabase
+          .from("connection_requests")
+          .select("id, status")
+          .eq("client_id", user.id)
+          .eq("crew_id", pid)
+          .single();
         existingRequest = reqData;
       }
 
