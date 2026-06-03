@@ -12,6 +12,13 @@ Versioning follows [Semantic Versioning](https://semver.org/) with `-beta.N` pre
 
 ---
 
+## [0.25.3-beta.1] — 2026-06-04
+
+### Added
+- **VissionLink single sign-on** — the Supabase auth session cookie is now scoped to `.vissionlink.com`, so a Google sign-in on CineForce is recognized across the sibling apps (Lakbay, BigAni) and vice-versa. Falls back to a host-only cookie on `localhost` and `*.vercel.app` preview deploys, where a `.vissionlink.com` cookie would be rejected.
+
+---
+
 ## [0.25.2-beta.1] — 2026-06-01
 
 ### Changed
